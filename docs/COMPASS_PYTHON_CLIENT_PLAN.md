@@ -1,5 +1,7 @@
 # Compass Python Client Implementation Plan
 
+> **⚠️ Historical Document**: This is the original design from November 2025. The actual implementation uses Puppeteer (Node.js) for browser automation instead of pure HTTP requests. See `COMPASS_AUTHENTICATION_STRATEGIES.md` for the current working approach.
+
 ## Executive Summary
 
 The `heheleo/compass-education` library uses Puppeteer (browser automation) to handle authentication and make API calls to Compass. **This adds significant complexity**: spinning up a headless browser, managing its lifecycle, and executing code within the browser context.

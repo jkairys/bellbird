@@ -208,7 +208,7 @@ poetry run flask run            # Flask development server (when implemented)
 }
 ```
 
-See `COMPASS_PYTHON_CLIENT_PLAN.md` for full implementation details.
+See `docs/COMPASS_PYTHON_CLIENT_PLAN.md` for full implementation details.
 
 ## Claude API Integration
 
@@ -228,15 +228,18 @@ See `src/filtering/llm_filter.py` implementation for details.
 
 ## Documentation Files
 
+All documentation is in the `docs/` directory except README.md and this file.
+
 | File | Purpose | Read First? |
 |------|---------|-------------|
-| QUICK_START.md | 2-minute setup guide | ✅ Yes |
-| INDEX.md | Navigation guide & roadmap | ✅ Yes |
-| SETUP_SUMMARY.md | Detailed initialization info | After QUICK_START |
-| README.md | Full project documentation | For reference |
-| PLAN.md | Project vision & requirements | For context |
-| MVP_ARCHITECTURE.md | System design & data flow | Before coding |
-| COMPASS_PYTHON_CLIENT_PLAN.md | Compass API integration | For adapter work |
+| README.md | Project overview | ✅ Yes |
+| docs/INDEX.md | Navigation guide | ✅ Yes |
+| docs/NEXT_STEPS.md | Current priorities & roadmap | ✅ Yes |
+| docs/IMPLEMENTATION_SUMMARY.md | What's working now | ✅ Yes |
+| docs/QUICK_START.md | 5-minute setup guide | For setup |
+| docs/MVP_ARCHITECTURE.md | System design & data flow | Before coding |
+| docs/COMPASS_AUTHENTICATION_STRATEGIES.md | Compass auth approach | For Compass work |
+| docs/COMPASS_USAGE_GUIDE.md | Using Compass client | For Compass work |
 | CLAUDE.md | This file | For Claude context |
 
 ## Common Patterns & Conventions

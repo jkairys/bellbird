@@ -46,37 +46,106 @@ Attempted but blocked by Cloudflare bot detection. While faster and simpler, Com
 ### User-Managed Sessions
 Users log in manually and export cookies for the app to use. Viable for production but adds user friction.
 
-## Usage
+## Usage Examples
 
-### Using the CompassClient (Puppeteer-based)
+### Basic Usage - Real Compass Client
 
 ```python
 from src.adapters.compass import CompassClient
+from datetime import datetime, timedelta
 
+# Initialize with your Compass instance
 client = CompassClient(
     base_url="https://seaford-northps-vic.compass.education",
     username="your_username",
     password="your_password"
 )
 
-# Authenticate
-client.login()
+try:
+    # Authenticate
+    client.login()
+    print("✓ Authenticated with Compass")
 
-# Fetch calendar events
-events = client.get_calendar_events("2025-01-01", "2025-01-31")
+    # Fetch events for next 2 weeks
+    start = datetime.now().strftime("%Y-%m-%d")
+    end = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
 
-# Clean up
-client.close()
+    events = client.get_calendar_events(start, end)
+    print(f"Retrieved {len(events)} events")
+
+    # Process events
+    for event in events:
+        print(f"  • {event['longTitle']}")
+        print(f"    Start: {event['start']}")
+
+finally:
+    client.close()
 ```
 
 ### Using Mock Data for Development
 
 ```python
 from src.adapters.compass_mock import CompassMockClient
+from datetime import datetime, timedelta
 
+# Initialize (no real credentials needed)
 client = CompassMockClient()
-events = client.get_calendar_events("2025-01-01", "2025-01-31")
-# Returns realistic synthetic test events
+
+# Login always succeeds
+client.login()
+
+# Fetch synthetic events
+start = datetime.now().strftime("%Y-%m-%d")
+end = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
+events = client.get_calendar_events(start, end)
+
+# Process events (same interface as real client)
+for event in events:
+    print(f"{event['longTitle']} on {event['start']}")
+
+client.close()
+```
+
+### Complete Pipeline Example
+
+```python
+from src.adapters.compass import CompassClient
+from src.filtering.llm_filter import LLMFilter
+from datetime import datetime, timedelta
+import os
+
+# 1. Fetch events from Compass
+client = CompassClient(
+    base_url="https://your-compass.edu.au",
+    username="your_username",
+    password="your_password"
+)
+client.login()
+
+start = datetime.now().strftime("%Y-%m-%d")
+end = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
+raw_events = client.get_calendar_events(start, end)
+client.close()
+
+print(f"Fetched {len(raw_events)} raw events")
+
+# 2. Filter with Claude
+llm_filter = LLMFilter(api_key=os.getenv('CLAUDE_API_KEY'))
+
+user_config = {
+    'child_name': 'Emma',
+    'year_level': 'Year 3',
+    'interests': ['music', 'sports'],
+    'filter_rules': 'Include Year 3 events and whole-school events.'
+}
+
+filtered = llm_filter.filter_events(raw_events, user_config)
+
+# 3. Display relevant events
+for result in filtered:
+    if result.get('is_relevant'):
+        print(f"\n✓ {result['title']}")
+        print(f"  {result['reason']}")
 ```
 
 ## Next Steps: Optimizing Authentication

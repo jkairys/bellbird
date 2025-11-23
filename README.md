@@ -2,6 +2,13 @@
 
 A unified school calendar event aggregation and filtering tool that consolidates events from multiple sources (Compass, Class Dojo, HubHello, Xplore) and intelligently filters them based on relevance to specific children.
 
+## Documentation
+
+- **[Full Documentation](docs/INDEX.md)** - Complete documentation index
+- **[Quick Start](docs/QUICK_START.md)** - Get started in 5 minutes
+- **[Next Steps](docs/NEXT_STEPS.md)** - Current development priorities
+- **[Implementation Status](docs/IMPLEMENTATION_SUMMARY.md)** - What's working now
+
 ## Project Vision
 
 Parents receive overwhelming amounts of communication from multiple school sources. Bellbird solves this by:
@@ -9,6 +16,13 @@ Parents receive overwhelming amounts of communication from multiple school sourc
 - **Filtering** for relevant events based on child/year level/event type
 - **Providing** advance notifications and a clear "next 2 weeks" view
 - **Syncing** to Google Calendar for easy mobile access
+
+## Current Status
+
+✅ **Authentication Working** - Puppeteer-based Compass authentication functional
+✅ **Tests Passing** - Integration tests with real credentials working
+⚠️ **Performance Issue** - Currently logs in on every request (~10-15s)
+🎯 **Next Priority** - Optimize session management (see [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md))
 
 ## MVP Scope (Phase 1)
 

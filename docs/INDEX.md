@@ -25,10 +25,9 @@ New to the project? Start here:
 
 | File | Purpose |
 |------|---------|
-| **COMPASS_AUTHENTICATION_STRATEGIES.md** | Current auth approach (Puppeteer) |
-| **COMPASS_PYTHON_CLIENT_PLAN.md** | Original integration plan |
-| **COMPASS_USAGE_GUIDE.md** | How to use the Compass client |
+| **COMPASS_AUTHENTICATION_STRATEGIES.md** | Current auth approach + usage examples |
 | **INTEGRATION_TEST_GUIDE.md** | Running integration tests |
+| **COMPASS_PYTHON_CLIENT_PLAN.md** | Original design doc (historical reference) |
 
 ## Current Priority
 
@@ -61,7 +60,7 @@ See **NEXT_STEPS.md** for complete roadmap.
 |------|--------------|
 | Understanding current status | IMPLEMENTATION_SUMMARY.md |
 | Setting up environment | README.md, QUICK_START.md |
-| Using Compass client | COMPASS_USAGE_GUIDE.md |
+| Using Compass client | COMPASS_AUTHENTICATION_STRATEGIES.md |
 | Running tests | INTEGRATION_TEST_GUIDE.md |
 | Understanding architecture | MVP_ARCHITECTURE.md |
 | Planning next work | NEXT_STEPS.md |
@@ -84,22 +83,20 @@ bellbird/
 
 ## Document Status
 
-✅ **Current**: README, NEXT_STEPS, IMPLEMENTATION_SUMMARY, COMPASS_AUTHENTICATION_STRATEGIES
-✅ **Reference**: MVP_ARCHITECTURE, PLAN, COMPASS_PYTHON_CLIENT_PLAN, COMPASS_USAGE_GUIDE
-🔄 **Living Document**: NEXT_STEPS (updated as priorities change)
+✅ **Current & Active**: NEXT_STEPS, IMPLEMENTATION_SUMMARY, COMPASS_AUTHENTICATION_STRATEGIES, QUICK_START
+✅ **Reference**: MVP_ARCHITECTURE, PLAN, INTEGRATION_TEST_GUIDE
+📚 **Historical**: COMPASS_PYTHON_CLIENT_PLAN (original design, not implemented)
 
 ## For New Developers
 
-1. **README.md** - Understand what Bellbird does
+1. **QUICK_START.md** - Get set up quickly
 2. **IMPLEMENTATION_SUMMARY.md** - See what's working
 3. **NEXT_STEPS.md** - Know what to build next
-4. **MVP_ARCHITECTURE.md** - Understand the design
 
 ## For Compass Integration
 
-1. **COMPASS_AUTHENTICATION_STRATEGIES.md** - How auth works
-2. **COMPASS_USAGE_GUIDE.md** - How to use the client
-3. **INTEGRATION_TEST_GUIDE.md** - Running tests
+1. **COMPASS_AUTHENTICATION_STRATEGIES.md** - How it works + usage examples
+2. **INTEGRATION_TEST_GUIDE.md** - Running tests
 
 ---
 

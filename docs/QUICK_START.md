@@ -1,16 +1,14 @@
 # Bellbird - Quick Start Guide
 
-## What's Done ✅
+Get up and running in 5 minutes.
 
-Your Bellbird Python project is fully initialized with:
+## Prerequisites
 
-- **Poetry project** with all dependencies configured
-- **Virtual environment** (.venv) with 22 core packages + 5 dev tools
-- **Project structure** with organized src/, tests/, frontend/, and data/ directories
-- **Configuration files** ready for use
-- **Documentation** explaining architecture and usage
+- Python 3.10+ (currently using 3.12.9)
+- Poetry for dependency management
+- Node.js (for Puppeteer-based Compass authentication)
 
-## First Time Setup (2 minutes)
+## First Time Setup
 
 ```bash
 # 1. Navigate to project
@@ -77,38 +75,25 @@ bellbird/
 └── QUICK_START.md         # This file
 ```
 
-## MVP Timeline (Next Steps)
+## Current Status
 
-### Phase 1: MVP (10 days)
-1. **Database Layer** - SQLite with encrypted credentials (Day 1-2)
-2. **Mock Adapter** - Synthetic Compass events for testing (Day 2-3)
-3. **Compass Client** - Real API integration (Day 4-5)
-4. **Filtering** - Claude API event filtering (Day 3-5)
-5. **CLI Interface** - Command-line tool (Day 5-6)
-6. **Flask Backend** - REST API endpoints (Day 6-7)
-7. **Web UI** - Simple HTML/JS frontend (Day 7-8)
-8. **Integration & Polish** - Testing and refinement (Day 8-10)
+✅ **Authentication Working** - Puppeteer-based Compass client functional
+✅ **Tests Passing** - Integration tests with real credentials
+⚠️ **Performance Issue** - Logs in on every request (~10-15s)
 
-### Key Files to Implement First
-- `src/db/database.py` - Database connection & schema
-- `src/db/models.py` - SQLAlchemy ORM models
-- `src/adapters/compass_mock.py` - Mock data provider
-- `src/filtering/llm_filter.py` - Claude integration
+## Next Steps
 
-## Key Design Decisions (Reference)
+See **NEXT_STEPS.md** for current development priorities.
 
-1. **No Browser Automation**: Direct HTTP requests to Compass (faster, simpler)
-2. **Local-First**: SQLite database, no cloud setup needed for MVP
-3. **Encrypted Credentials**: Using cryptography.fernet for security
-4. **LLM Filtering**: Claude API intelligently filters events
-5. **Mock Data Ready**: Test without real credentials
+Top priority: Optimize CompassClient session management to avoid repetitive logins.
 
-## Useful Resources
+## Key Documentation
 
-- **PLAN.md** - Full project vision and requirements
-- **MVP_ARCHITECTURE.md** - System design and data flow diagrams
-- **COMPASS_PYTHON_CLIENT_PLAN.md** - Detailed integration plan
-- **README.md** - Complete documentation
+- **INDEX.md** - Documentation navigation
+- **NEXT_STEPS.md** - Current development roadmap
+- **IMPLEMENTATION_SUMMARY.md** - What's working now
+- **MVP_ARCHITECTURE.md** - System design
+- **COMPASS_AUTHENTICATION_STRATEGIES.md** - How Compass auth works
 
 ## Common Tasks
 
