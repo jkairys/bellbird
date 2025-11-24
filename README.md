@@ -36,58 +36,60 @@ The MVP focuses on **Compass only** for local development:
 
 ```
 bellweaver/
-├── src/                          # Main Python package
-│   ├── __init__.py
-│   ├── cli.py                   # CLI entry point
-│   ├── app.py                   # Flask app entry point
-│   │
-│   ├── adapters/                # Calendar source adapters
+├── backend/                      # Backend Python application
+│   ├── src/                      # Main Python package
 │   │   ├── __init__.py
-│   │   ├── compass.py           # Real Compass API client
-│   │   └── compass_mock.py      # Mock Compass for testing
+│   │   ├── cli.py               # CLI entry point
+│   │   ├── app.py               # Flask app entry point
+│   │   │
+│   │   ├── adapters/            # Calendar source adapters
+│   │   │   ├── __init__.py
+│   │   │   ├── compass.py       # Real Compass API client
+│   │   │   └── compass_mock.py  # Mock Compass for testing
+│   │   │
+│   │   ├── models/              # Data models
+│   │   │   └── config.py        # Configuration models
+│   │   │
+│   │   ├── db/                  # Database layer
+│   │   │   ├── __init__.py
+│   │   │   ├── database.py      # SQLite connection & schema
+│   │   │   ├── credentials.py   # Encrypted credential storage
+│   │   │   └── models.py        # SQLAlchemy ORM models
+│   │   │
+│   │   ├── filtering/           # Event filtering & enrichment
+│   │   │   ├── __init__.py
+│   │   │   └── llm_filter.py    # Claude API filtering logic
+│   │   │
+│   │   └── api/                 # REST API endpoints
+│   │       ├── __init__.py
+│   │       ├── routes.py        # Flask routes
+│   │       └── schemas.py       # Request/response schemas
 │   │
-│   ├── models/                  # Data models
-│   │   └── config.py            # Configuration models
-│   │
-│   ├── db/                      # Database layer
+│   ├── tests/                    # Unit tests
 │   │   ├── __init__.py
-│   │   ├── database.py          # SQLite connection & schema
-│   │   ├── credentials.py       # Encrypted credential storage
-│   │   └── models.py            # SQLAlchemy ORM models
+│   │   ├── test_compass_adapter.py
+│   │   ├── test_compass_mock.py
+│   │   └── test_filtering.py
 │   │
-│   ├── filtering/               # Event filtering & enrichment
-│   │   ├── __init__.py
-│   │   └── llm_filter.py        # Claude API filtering logic
+│   ├── data/                     # Data directory (gitignored)
+│   │   └── .gitkeep
 │   │
-│   └── api/                     # REST API endpoints
-│       ├── __init__.py
-│       ├── routes.py            # Flask routes
-│       └── schemas.py           # Request/response schemas
+│   ├── pyproject.toml           # Poetry configuration
+│   ├── .env.example             # Environment variables template
+│   └── README.md                # Backend setup instructions
 │
-├── frontend/                     # Web UI (Phase 1)
-│   ├── index.html               # Onboarding form
-│   ├── dashboard.html           # Event dashboard
-│   ├── css/
-│   │   └── style.css            # Basic styling
-│   └── js/
-│       └── app.js               # Form submission & API calls
+├── frontend/                     # Frontend application (TBD)
+│   ├── src/                     # Source files
+│   ├── public/                  # Static assets
+│   └── README.md                # Frontend setup instructions
 │
-├── tests/                        # Unit tests
-│   ├── __init__.py
-│   ├── test_compass_adapter.py
-│   ├── test_compass_mock.py
-│   └── test_filtering.py
+├── docs/                         # Project documentation
+│   ├── INDEX.md                 # Documentation index
+│   ├── QUICK_START.md           # Quick start guide
+│   └── ...                      # Other docs
 │
-├── data/                         # Data directory (gitignored)
-│   └── .gitkeep
-│
-├── pyproject.toml               # Poetry configuration
-├── .env.example                 # Environment variables template
 ├── .gitignore                   # Git ignore rules
-├── README.md                    # This file
-├── PLAN.md                      # Project plan
-├── MVP_ARCHITECTURE.md          # Architecture documentation
-└── COMPASS_PYTHON_CLIENT_PLAN.md # Compass integration plan
+└── README.md                    # This file
 ```
 
 ## Setup Instructions
@@ -106,9 +108,10 @@ git clone <repo-url>
 cd bellweaver
 ```
 
-2. **Install dependencies with Poetry**:
+2. **Set up the backend**:
 ```bash
-poetry install
+cd backend
+poetry install --with dev
 ```
 
 3. **Set up environment variables**:
@@ -124,7 +127,7 @@ BELLWEAVER_ENCRYPTION_KEY=  # Will be auto-generated on first run
 
 4. **Verify installation**:
 ```bash
-poetry run bellweaver --help
+poetry run pytest
 ```
 
 ## Usage
@@ -180,13 +183,17 @@ Features:
 
 ## Development
 
+All development commands should be run from the `backend/` directory:
+
 ### Running Tests
 ```bash
+cd backend
 poetry run pytest
 ```
 
 ### Code Quality
 ```bash
+cd backend
 poetry run black src tests
 poetry run flake8 src tests
 poetry run mypy src
@@ -194,6 +201,7 @@ poetry run mypy src
 
 ### Development Mode
 ```bash
+cd backend
 export FLASK_ENV=development
 poetry run flask run --debug
 ```

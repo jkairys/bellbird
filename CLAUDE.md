@@ -35,35 +35,39 @@ This file documents key information about the Bellweaver project to help Claude 
 
 ```
 bellweaver/
-├── src/                          # Main application code
-│   ├── adapters/                 # External API clients
-│   │   ├── compass.py           # Real Compass API (HTTP-based, no browser automation)
-│   │   └── compass_mock.py      # Synthetic data for testing
-│   ├── db/                       # Database layer
-│   │   ├── database.py          # SQLAlchemy session, connection, schema
-│   │   ├── models.py            # ORM models (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
-│   │   └── credentials.py       # Encrypted credential storage/retrieval
-│   ├── models/                   # Pydantic/dataclass models
-│   │   └── config.py            # User configuration models
-│   ├── filtering/                # LLM-based event filtering
-│   │   └── llm_filter.py        # Claude API integration
-│   ├── api/                      # Flask REST API
-│   │   ├── routes.py            # Flask blueprint routes
-│   │   └── schemas.py           # Request/response validation
-│   ├── cli.py                    # [TODO] Command-line interface
-│   └── app.py                    # [TODO] Flask application factory
-├── frontend/                     # Web UI
-│   ├── index.html               # [TODO] Onboarding form
-│   ├── dashboard.html           # [TODO] Event dashboard
-│   ├── css/style.css            # [TODO] Styling
-│   └── js/app.js                # [TODO] Client-side logic
-├── tests/                        # Unit & integration tests
-├── data/                         # Runtime data directory (gitignored)
-│   └── bellweaver.db             # SQLite database created at runtime
-├── pyproject.toml               # Poetry configuration + tool settings
-├── .env.example                 # Environment variables template
-├── .gitignore                   # Python + project-specific ignores
-└── poetry.lock                  # Locked dependencies
+├── backend/                      # Backend Python application
+│   ├── src/                      # Main application code
+│   │   ├── adapters/            # External API clients
+│   │   │   ├── compass.py       # Real Compass API (HTTP-based, no browser automation)
+│   │   │   └── compass_mock.py  # Synthetic data for testing
+│   │   ├── db/                  # Database layer
+│   │   │   ├── database.py      # SQLAlchemy session, connection, schema
+│   │   │   ├── models.py        # ORM models (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
+│   │   │   └── credentials.py   # Encrypted credential storage/retrieval
+│   │   ├── models/              # Pydantic/dataclass models
+│   │   │   └── config.py        # User configuration models
+│   │   ├── filtering/           # LLM-based event filtering
+│   │   │   └── llm_filter.py    # Claude API integration
+│   │   ├── api/                 # Flask REST API
+│   │   │   ├── routes.py        # Flask blueprint routes
+│   │   │   └── schemas.py       # Request/response validation
+│   │   ├── cli.py               # [TODO] Command-line interface
+│   │   └── app.py               # [TODO] Flask application factory
+│   ├── tests/                    # Unit & integration tests
+│   ├── data/                     # Runtime data directory (gitignored)
+│   │   └── bellweaver.db         # SQLite database created at runtime
+│   ├── pyproject.toml           # Poetry configuration + tool settings
+│   ├── .env.example             # Environment variables template
+│   └── poetry.lock              # Locked dependencies
+│
+├── frontend/                     # Frontend application (TBD)
+│   ├── src/                     # Source files
+│   ├── public/                  # Static assets
+│   └── README.md                # Frontend setup instructions
+│
+├── docs/                         # Project documentation
+├── .gitignore                   # Git ignore rules
+└── README.md                    # Main project README
 ```
 
 ## Architecture & Data Flow
@@ -134,7 +138,11 @@ DATABASE_URL=sqlite:///./data/bellweaver.db  # Optional, defaults as shown
 See `.env.example` for full template.
 
 ### Poetry Commands
+
+All Poetry commands should be run from the `backend/` directory:
+
 ```bash
+cd backend
 poetry install --with dev       # Install all dependencies
 poetry run pytest               # Run tests
 poetry run black src tests      # Format code
@@ -149,30 +157,30 @@ poetry run flask run            # Flask development server (when implemented)
 ## Phase 1 MVP Roadmap (10 Days)
 
 ### Days 1-2: Database Foundation
-- [ ] Implement `src/db/database.py` (SQLAlchemy session, schema creation)
-- [ ] Implement `src/db/models.py` (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
-- [ ] Implement `src/db/credentials.py` (encrypted credential storage)
+- [ ] Implement `backend/src/db/database.py` (SQLAlchemy session, schema creation)
+- [ ] Implement `backend/src/db/models.py` (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
+- [ ] Implement `backend/src/db/credentials.py` (encrypted credential storage)
 
 ### Days 2-3: Testing Framework (Parallel)
-- [ ] Implement `src/adapters/compass_mock.py` (15-20 synthetic events)
+- [ ] Implement `backend/src/adapters/compass_mock.py` (15-20 synthetic events)
 - [ ] Add unit tests for mock adapter
 
 ### Days 3-5: Filtering & Real Integration
-- [ ] Implement `src/filtering/llm_filter.py` (Claude API integration)
-- [ ] Implement `src/adapters/compass.py` (real Compass API client)
+- [ ] Implement `backend/src/filtering/llm_filter.py` (Claude API integration)
+- [ ] Implement `backend/src/adapters/compass.py` (real Compass API client)
 - [ ] Test with real credentials
 
 ### Days 5-7: Web & CLI
-- [ ] Implement `src/cli.py` (argument parser, commands: --fetch, --filter, --full, --show-filtered)
-- [ ] Implement `src/app.py` (Flask app factory)
-- [ ] Implement `src/api/routes.py` (REST endpoints: /config, /sync, /events, /sync-status)
-- [ ] Implement `src/api/schemas.py` (request/response validation)
+- [ ] Implement `backend/src/cli.py` (argument parser, commands: --fetch, --filter, --full, --show-filtered)
+- [ ] Implement `backend/src/app.py` (Flask app factory)
+- [ ] Implement `backend/src/api/routes.py` (REST endpoints: /config, /sync, /events, /sync-status)
+- [ ] Implement `backend/src/api/schemas.py` (request/response validation)
 
 ### Days 7-9: User Interface
-- [ ] Implement `frontend/index.html` (onboarding form)
-- [ ] Implement `frontend/dashboard.html` (event display)
-- [ ] Implement `frontend/css/style.css` (basic styling)
-- [ ] Implement `frontend/js/app.js` (form submission, API calls)
+- [ ] Implement `frontend/` application structure
+- [ ] Implement onboarding form UI
+- [ ] Implement event dashboard UI
+- [ ] Implement basic styling and API integration
 
 ### Days 9-10: Integration & Polish
 - [ ] End-to-end testing
@@ -224,7 +232,7 @@ See `docs/COMPASS_PYTHON_CLIENT_PLAN.md` for full implementation details.
 
 **Output Format**: JSON array with fields: event_id, title, date, is_relevant, reason, action_needed
 
-See `src/filtering/llm_filter.py` implementation for details.
+See `backend/src/filtering/llm_filter.py` implementation for details.
 
 ## Documentation Files
 
@@ -271,7 +279,11 @@ results = filter_engine.filter_events(raw_events, user_config)
 ```
 
 ### CLI Commands
+
+All CLI commands should be run from the `backend/` directory:
+
 ```bash
+cd backend
 poetry run bellweaver --set-credentials compass --username X --password Y
 poetry run bellweaver --set-config --child-name Sophia --year-level "Year 3" ...
 poetry run bellweaver --fetch
@@ -306,9 +318,9 @@ poetry run bellweaver --show-filtered
 - **Gitignore**: Properly configured for Python + project-specific files
 
 ### Files to Never Commit
-- `.env` (has API keys)
-- `.venv/` (virtual environment)
-- `data/bellbird.db` (user data)
+- `backend/.env` (has API keys)
+- `backend/.venv/` (virtual environment)
+- `backend/data/bellweaver.db` (user data)
 - `__pycache__/` and `.pytest_cache/`
 
 ### Commit Message Style
@@ -318,8 +330,11 @@ poetry run bellweaver --show-filtered
 
 ## Debugging & Troubleshooting
 
+All troubleshooting commands should be run from the `backend/` directory:
+
 ### Poetry Issues
 ```bash
+cd backend
 poetry lock --refresh
 poetry install --with dev
 poetry cache clear . --all
@@ -327,17 +342,20 @@ poetry cache clear . --all
 
 ### Database Issues
 ```bash
+cd backend
 rm data/bellweaver.db  # Reset database
 poetry run pytest    # Verify tests pass
 ```
 
 ### Type Checking
 ```bash
+cd backend
 poetry run mypy src  # Full type check
 ```
 
 ### Code Quality
 ```bash
+cd backend
 poetry run black src tests       # Auto-format
 poetry run flake8 src tests      # Check style
 poetry run mypy src              # Check types

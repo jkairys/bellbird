@@ -207,9 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 # Bellweaver project-specific
-!backend/data/.gitkeep
-backend/.venv/
-backend/poetry.lock
-frontend/node_modules/
-frontend/dist/
-frontend/build/
+!data/.gitkeep
+.venv/
+poetry.lock
