@@ -206,8 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Bellbird project-specific
-data/
+# Bellweaver project-specific
 !data/.gitkeep
 .venv/
 poetry.lock

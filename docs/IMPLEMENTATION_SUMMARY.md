@@ -39,7 +39,7 @@
 ## Key Files Created/Modified
 
 ```
-bellbird/
+bellweaver/
 ├── src/adapters/
 │   ├── compass.py                    # Enhanced with BeautifulSoup form parsing
 │   └── compass_browser.py            # New: Playwright-based authentication

@@ -1,4 +1,4 @@
-# Bellbird - Quick Start Guide
+# Bellweaver - Quick Start Guide
 
 Get up and running in 5 minutes.
 
@@ -12,7 +12,7 @@ Get up and running in 5 minutes.
 
 ```bash
 # 1. Navigate to project
-cd /Users/jethro/github/jkairys/bellbird
+cd /Users/jethro/github/jkairys/bellweaver
 
 # 2. Copy environment template
 cp .env.example .env
@@ -45,7 +45,7 @@ poetry run mypy src
 poetry add package-name
 
 # Run CLI (when implemented)
-poetry run bellbird --help
+poetry run bellweaver --help
 
 # Run Flask server (when implemented)
 poetry run flask run
@@ -54,7 +54,7 @@ poetry run flask run
 ## Project Structure at a Glance
 
 ```
-bellbird/
+bellweaver/
 ├── src/                    # Main source code
 │   ├── adapters/          # Compass API client (to implement)
 │   ├── db/                # Database layer (to implement)
@@ -110,7 +110,7 @@ poetry update
 
 ### Clean virtual environment
 ```bash
-poetry env remove bellbird
+poetry env remove bellweaver
 poetry install --with dev
 ```
 
@@ -127,14 +127,14 @@ CLAUDE_API_KEY=sk-ant-xxxxx
 
 # Auto-generated encryption key for credential storage
 # Leave empty on first run - it will be generated and saved
-BELLBIRD_ENCRYPTION_KEY=
+BELLWEAVER_ENCRYPTION_KEY=
 
 # Flask settings (optional)
 FLASK_ENV=development
 FLASK_DEBUG=1
 
-# Database location (optional, defaults to ./data/bellbird.db)
-DATABASE_URL=sqlite:///./data/bellbird.db
+# Database location (optional, defaults to ./data/bellweaver.db)
+DATABASE_URL=sqlite:///./data/bellweaver.db
 ```
 
 ## Troubleshooting
@@ -147,7 +147,7 @@ poetry install --with dev
 
 **Virtual environment issues?**
 ```bash
-poetry env remove bellbird
+poetry env remove bellweaver
 poetry install --with dev
 ```
 

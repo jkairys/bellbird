@@ -1,4 +1,4 @@
-# Bellbird Documentation Index
+# Bellweaver Documentation Index
 
 **Last Updated**: November 24, 2025
 **Current Focus**: Optimize session management in CompassClient
@@ -68,7 +68,7 @@ See **NEXT_STEPS.md** for complete roadmap.
 ## Project Structure
 
 ```
-bellbird/
+bellweaver/
 ├── src/adapters/
 │   ├── compass.py           # ✅ Puppeteer-based client (working, needs optimization)
 │   └── compass_mock.py      # ✅ Mock data for testing

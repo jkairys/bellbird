@@ -1,10 +1,10 @@
-# Claude Code Context Guide for Bellbird
+# Claude Code Context Guide for Bellweaver
 
-This file documents key information about the Bellbird project to help Claude Code understand the codebase, architecture, and development context.
+This file documents key information about the Bellweaver project to help Claude Code understand the codebase, architecture, and development context.
 
 ## Project Overview
 
-**Bellbird** is a school calendar event aggregation and filtering tool that consolidates events from multiple sources (Compass, Class Dojo, HubHello, Xplore) and intelligently filters them based on relevance to specific children.
+**Bellweaver** is a school calendar event aggregation and filtering tool that consolidates events from multiple sources (Compass, Class Dojo, HubHello, Xplore) and intelligently filters them based on relevance to specific children.
 
 **Problem**: Parents receive overwhelming communication from multiple school sources with no unified view.
 
@@ -34,7 +34,7 @@ This file documents key information about the Bellbird project to help Claude Co
 ## Project Structure & Key Directories
 
 ```
-bellbird/
+bellweaver/
 ├── src/                          # Main application code
 │   ├── adapters/                 # External API clients
 │   │   ├── compass.py           # Real Compass API (HTTP-based, no browser automation)
@@ -59,7 +59,7 @@ bellbird/
 │   └── js/app.js                # [TODO] Client-side logic
 ├── tests/                        # Unit & integration tests
 ├── data/                         # Runtime data directory (gitignored)
-│   └── bellbird.db             # SQLite database created at runtime
+│   └── bellweaver.db             # SQLite database created at runtime
 ├── pyproject.toml               # Poetry configuration + tool settings
 ├── .env.example                 # Environment variables template
 ├── .gitignore                   # Python + project-specific ignores
@@ -125,10 +125,10 @@ Database Layer (SQLAlchemy)
 ### Required Environment Variables
 ```bash
 CLAUDE_API_KEY                  # Anthropic API key (required)
-BELLBIRD_ENCRYPTION_KEY         # Fernet encryption key (auto-generated on first run)
+BELLWEAVER_ENCRYPTION_KEY         # Fernet encryption key (auto-generated on first run)
 FLASK_ENV=development           # Optional, defaults to production
 FLASK_DEBUG=1                   # Optional, for development
-DATABASE_URL=sqlite:///./data/bellbird.db  # Optional, defaults as shown
+DATABASE_URL=sqlite:///./data/bellweaver.db  # Optional, defaults as shown
 ```
 
 See `.env.example` for full template.
@@ -142,7 +142,7 @@ poetry run flake8 src tests     # Lint
 poetry run mypy src             # Type check
 poetry add package-name         # Add production dependency
 poetry add --group dev pkg      # Add dev dependency
-poetry run bellbird --help      # CLI help (when implemented)
+poetry run bellweaver --help      # CLI help (when implemented)
 poetry run flask run            # Flask development server (when implemented)
 ```
 
@@ -272,12 +272,12 @@ results = filter_engine.filter_events(raw_events, user_config)
 
 ### CLI Commands
 ```bash
-poetry run bellbird --set-credentials compass --username X --password Y
-poetry run bellbird --set-config --child-name Sophia --year-level "Year 3" ...
-poetry run bellbird --fetch
-poetry run bellbird --filter
-poetry run bellbird --full
-poetry run bellbird --show-filtered
+poetry run bellweaver --set-credentials compass --username X --password Y
+poetry run bellweaver --set-config --child-name Sophia --year-level "Year 3" ...
+poetry run bellweaver --fetch
+poetry run bellweaver --filter
+poetry run bellweaver --full
+poetry run bellweaver --show-filtered
 ```
 
 ## Testing Strategy
@@ -327,7 +327,7 @@ poetry cache clear . --all
 
 ### Database Issues
 ```bash
-rm data/bellbird.db  # Reset database
+rm data/bellweaver.db  # Reset database
 poetry run pytest    # Verify tests pass
 ```
 

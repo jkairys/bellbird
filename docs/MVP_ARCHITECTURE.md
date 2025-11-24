@@ -1,4 +1,4 @@
-# Bellbird MVP Architecture
+# Bellweaver MVP Architecture
 
 ## Focus
 
@@ -84,7 +84,7 @@
 │  └──────────────────────────────────────────────────────┘   │
 │                                                              │
 │  Data Directory: ./data/                                    │
-│  ├─ bellbird.db (SQLite database)                           │
+│  ├─ bellweaver.db (SQLite database)                         │
 │  └─ .env (environment variables, gitignored)               │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -180,7 +180,7 @@ CLI Command: python fetch_and_filter.py --filter
 ## Project Structure
 
 ```
-bellbird/
+bellweaver/
 ├── README.md
 ├── PLAN.md
 ├── MVP_ARCHITECTURE.md
@@ -245,7 +245,7 @@ bellbird/
 ### 1. **Credential Storage**
 - Credentials encrypted in SQLite using `cryptography` library (Fernet symmetric encryption)
 - Encryption key stored in environment variable `.env` (never committed)
-- Database file `data/bellbird.db` is gitignored
+- Database file `data/bellweaver.db` is gitignored
 - Allows local development without external services
 - Can be migrated to GCP Secret Manager later if needed
 
@@ -468,13 +468,13 @@ python src/cli.py --show-filtered
 **.env** (never committed):
 ```bash
 CLAUDE_API_KEY=sk-ant-...
-BELLBIRD_ENCRYPTION_KEY=base64-encoded-key-here  # Generated on first run
+BELLWEAVER_ENCRYPTION_KEY=base64-encoded-key-here  # Generated on first run
 ```
 
 **.env.example** (tracked in git):
 ```bash
 CLAUDE_API_KEY=your-anthropic-api-key-here
-BELLBIRD_ENCRYPTION_KEY=will-be-auto-generated-on-first-run
+BELLWEAVER_ENCRYPTION_KEY=will-be-auto-generated-on-first-run
 ```
 
 ---

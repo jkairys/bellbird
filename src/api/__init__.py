@@ -1,1 +1,1 @@
-"""REST API endpoints for Bellbird."""
+"""REST API endpoints for Bellweaver."""

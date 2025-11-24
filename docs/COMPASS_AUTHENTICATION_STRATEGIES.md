@@ -1,5 +1,7 @@
 # Compass Authentication Strategy
 
+> **Project**: Bellweaver
+
 ## Current Implementation
 
 We successfully use **Pure Python HTTP Requests** to authenticate with Compass Education. The implementation handles:

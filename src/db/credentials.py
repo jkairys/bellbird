@@ -20,7 +20,7 @@ class CredentialManager:
 
         Args:
             db_session: SQLAlchemy database session
-            encryption_key: Optional encryption key. If None, loads from BELLBIRD_ENCRYPTION_KEY env var
+            encryption_key: Optional encryption key. If None, loads from BELLWEAVER_ENCRYPTION_KEY env var
         """
         self.db_session = db_session
         self.cipher = self._init_cipher(encryption_key)
@@ -28,13 +28,13 @@ class CredentialManager:
     def _init_cipher(self, encryption_key: Optional[str]) -> Fernet:
         """Initialize Fernet cipher with key."""
         if encryption_key is None:
-            encryption_key = os.getenv('BELLBIRD_ENCRYPTION_KEY')
+            encryption_key = os.getenv('BELLWEAVER_ENCRYPTION_KEY')
 
         if encryption_key is None:
             # Generate new key and save to .env
             key = Fernet.generate_key().decode()
             print(f"Generated encryption key: {key}")
-            print("Save this to .env as BELLBIRD_ENCRYPTION_KEY")
+            print("Save this to .env as BELLWEAVER_ENCRYPTION_KEY")
             encryption_key = key
 
         return Fernet(encryption_key.encode())

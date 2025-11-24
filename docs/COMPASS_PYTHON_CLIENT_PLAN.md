@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-Bellbird uses a **lightweight Python client** to authenticate with Compass Education and fetch calendar events without browser automation. This approach is:
+Bellweaver uses a **lightweight Python client** to authenticate with Compass Education and fetch calendar events without browser automation. This approach is:
 - **Fast**: ~1-2s for authentication vs ~3s for browser startup
 - **Simple**: Pure Python with `requests` library
 - **Low overhead**: ~10-20MB memory vs full browser footprint

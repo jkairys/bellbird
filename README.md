@@ -1,4 +1,4 @@
-# Bellbird
+# Bellweaver
 
 A unified school calendar event aggregation and filtering tool that consolidates events from multiple sources (Compass, Class Dojo, HubHello, Xplore) and intelligently filters them based on relevance to specific children.
 
@@ -11,7 +11,7 @@ A unified school calendar event aggregation and filtering tool that consolidates
 
 ## Project Vision
 
-Parents receive overwhelming amounts of communication from multiple school sources. Bellbird solves this by:
+Parents receive overwhelming amounts of communication from multiple school sources. Bellweaver solves this by:
 - **Consolidating** events from multiple calendar systems into one place
 - **Filtering** for relevant events based on child/year level/event type
 - **Providing** advance notifications and a clear "next 2 weeks" view
@@ -35,7 +35,7 @@ The MVP focuses on **Compass only** for local development:
 ## Project Structure
 
 ```
-bellbird/
+bellweaver/
 ├── src/                          # Main Python package
 │   ├── __init__.py
 │   ├── cli.py                   # CLI entry point
@@ -103,7 +103,7 @@ bellbird/
 1. **Clone the repository**:
 ```bash
 git clone <repo-url>
-cd bellbird
+cd bellweaver
 ```
 
 2. **Install dependencies with Poetry**:
@@ -119,12 +119,12 @@ cp .env.example .env
 Then edit `.env` with your actual values:
 ```bash
 CLAUDE_API_KEY=your-anthropic-api-key-here
-BELLBIRD_ENCRYPTION_KEY=  # Will be auto-generated on first run
+BELLWEAVER_ENCRYPTION_KEY=  # Will be auto-generated on first run
 ```
 
 4. **Verify installation**:
 ```bash
-poetry run bellbird --help
+poetry run bellweaver --help
 ```
 
 ## Usage
@@ -257,7 +257,7 @@ poetry cache clear . --all
 
 ### Database Reset
 ```bash
-rm data/bellbird.db
+rm data/bellweaver.db
 ```
 
 ## Contributing
