@@ -1,0 +1,190 @@
+[
+  {
+    "__type": "CalendarTransport:http://jdlf.com.au/ns/data/calendar",
+    "activityId": 12441,
+    "activityType": 1,
+    "allDay": false,
+    "attendanceMode": 1,
+    "backgroundColor": "#dce6f4",
+    "calendarId": -4164,
+    "description": "",
+    "finish": "2025-11-24T02:40:00Z",
+    "guid": "c4997880-4dcc-4ea4-9a0e-7cb27e9eaf6b",
+    "instanceId": "12441231120252200",
+    "isRecurring": false,
+    "lessonPlanConfigured": false,
+    "locations": [
+      {
+        "__type": "CalendarEventLocation:http://jdlf.com.au/ns/data/calendar",
+        "locationId": 1,
+        "locationName": "Classroom 1A"
+      }
+    ],
+    "longTitle": "10:00: Year 1 Generalist",
+    "longTitleWithoutTime": "Year 1 Generalist",
+    "managerId": 4424,
+    "managers": [
+      {
+        "__type": "CalendarEventManager:http://jdlf.com.au/ns/data/calendar",
+        "managerImportIdentifier": "T001",
+        "managerUserId": 4424
+      }
+    ],
+    "period": "AM",
+    "rollMarked": true,
+    "runningStatus": 1,
+    "start": "2025-11-23T22:00:00Z",
+    "subjectLongName": "Year 1 Generalist",
+    "targetStudentId": 4164,
+    "textColor": "#000000",
+    "title": "Year 1 Class"
+  },
+  {
+    "__type": "CalendarTransport:http://jdlf.com.au/ns/data/calendar",
+    "activityId": 15223,
+    "activityType": 2,
+    "allDay": false,
+    "backgroundColor": "#fff3cd",
+    "calendarId": -4164,
+    "description": "Permission slip required. Cost: $15. Bring hat, water bottle, and lunch.",
+    "finish": "2025-11-27T05:00:00Z",
+    "guid": "a1234567-89ab-cdef-0123-456789abcdef",
+    "instanceId": "15223271120250900",
+    "isRecurring": false,
+    "locations": [
+      {
+        "__type": "CalendarEventLocation:http://jdlf.com.au/ns/data/calendar",
+        "locationId": 25,
+        "locationName": "Melbourne Zoo"
+      }
+    ],
+    "longTitle": "Year 1 Excursion - Melbourne Zoo",
+    "longTitleWithoutTime": "Year 1 Excursion - Melbourne Zoo",
+    "managerId": 5001,
+    "managers": [
+      {
+        "__type": "CalendarEventManager:http://jdlf.com.au/ns/data/calendar",
+        "managerImportIdentifier": "T002",
+        "managerUserId": 5001
+      }
+    ],
+    "rollMarked": false,
+    "runningStatus": 0,
+    "start": "2025-11-26T23:30:00Z",
+    "subjectLongName": "Excursion",
+    "targetStudentId": 4164,
+    "textColor": "#000000",
+    "title": "Zoo Excursion"
+  },
+  {
+    "__type": "CalendarTransport:http://jdlf.com.au/ns/data/calendar",
+    "activityId": 15892,
+    "activityType": 3,
+    "allDay": true,
+    "backgroundColor": "#d4edda",
+    "calendarId": 0,
+    "description": "Whole school assembly. Parents welcome to attend.",
+    "finish": "2025-11-29T00:00:00Z",
+    "guid": "b2345678-90ab-cdef-0123-456789abcdef",
+    "instanceId": "15892291120250000",
+    "isRecurring": false,
+    "locations": [
+      {
+        "__type": "CalendarEventLocation:http://jdlf.com.au/ns/data/calendar",
+        "locationId": 10,
+        "locationName": "School Hall"
+      }
+    ],
+    "longTitle": "Whole School Assembly",
+    "longTitleWithoutTime": "Whole School Assembly",
+    "managerId": 5100,
+    "managers": [
+      {
+        "__type": "CalendarEventManager:http://jdlf.com.au/ns/data/calendar",
+        "managerImportIdentifier": "PRINCIPAL",
+        "managerUserId": 5100
+      }
+    ],
+    "rollMarked": false,
+    "runningStatus": 0,
+    "start": "2025-11-29T00:00:00Z",
+    "subjectLongName": "Assembly",
+    "targetStudentId": 0,
+    "textColor": "#000000",
+    "title": "Assembly"
+  },
+  {
+    "__type": "CalendarTransport:http://jdlf.com.au/ns/data/calendar",
+    "activityId": 16001,
+    "activityType": 2,
+    "allDay": false,
+    "backgroundColor": "#e7f3ff",
+    "calendarId": -4164,
+    "description": "Year 2-3 students only. Sports day activities and games.",
+    "finish": "2025-12-03T05:00:00Z",
+    "guid": "c3456789-01ab-cdef-0123-456789abcdef",
+    "instanceId": "16001031220250900",
+    "isRecurring": false,
+    "locations": [
+      {
+        "__type": "CalendarEventLocation:http://jdlf.com.au/ns/data/calendar",
+        "locationId": 15,
+        "locationName": "School Oval"
+      }
+    ],
+    "longTitle": "Year 2-3 Sports Carnival",
+    "longTitleWithoutTime": "Year 2-3 Sports Carnival",
+    "managerId": 5200,
+    "managers": [
+      {
+        "__type": "CalendarEventManager:http://jdlf.com.au/ns/data/calendar",
+        "managerImportIdentifier": "T003",
+        "managerUserId": 5200
+      }
+    ],
+    "rollMarked": false,
+    "runningStatus": 0,
+    "start": "2025-12-02T23:00:00Z",
+    "subjectLongName": "Sports",
+    "targetStudentId": 4164,
+    "textColor": "#000000",
+    "title": "Sports Carnival"
+  },
+  {
+    "__type": "CalendarTransport:http://jdlf.com.au/ns/data/calendar",
+    "activityId": 16445,
+    "activityType": 2,
+    "allDay": false,
+    "backgroundColor": "#ffe4e1",
+    "calendarId": -5001,
+    "description": "Year 4 museum excursion. Year 1 students not included.",
+    "finish": "2025-12-05T05:00:00Z",
+    "guid": "d4567890-12ab-cdef-0123-456789abcdef",
+    "instanceId": "16445051220250900",
+    "isRecurring": false,
+    "locations": [
+      {
+        "__type": "CalendarEventLocation:http://jdlf.com.au/ns/data/calendar",
+        "locationId": 30,
+        "locationName": "State Museum"
+      }
+    ],
+    "longTitle": "Year 4 Excursion - State Museum",
+    "longTitleWithoutTime": "Year 4 Excursion - State Museum",
+    "managerId": 5300,
+    "managers": [
+      {
+        "__type": "CalendarEventManager:http://jdlf.com.au/ns/data/calendar",
+        "managerImportIdentifier": "T004",
+        "managerUserId": 5300
+      }
+    ],
+    "rollMarked": false,
+    "runningStatus": 0,
+    "start": "2025-12-04T23:30:00Z",
+    "subjectLongName": "Excursion",
+    "targetStudentId": 5001,
+    "textColor": "#000000",
+    "title": "Museum Visit"
+  }
+]

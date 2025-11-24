@@ -10,6 +10,7 @@ import json
 import re
 from datetime import datetime
 from typing import Optional, Dict, List, Any
+from bs4 import BeautifulSoup
 
 
 class CompassClient:
@@ -32,9 +33,30 @@ class CompassClient:
         self.username = username
         self.password = password
         self.session = requests.Session()
+        self._setup_session_headers()
         self.user_id: Optional[int] = None
         self.school_config_key: Optional[str] = None
         self._authenticated = False
+
+    def _setup_session_headers(self) -> None:
+        """
+        Set up realistic browser headers to avoid being blocked.
+
+        Compass may block requests that don't look like they come from a real browser.
+        """
+        self.session.headers.update({
+            'User-Agent': (
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/142.0.0.0 Safari/537.36'
+            ),
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-AU,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        })
 
     def login(self) -> bool:
         """
@@ -45,25 +67,38 @@ class CompassClient:
         """
         login_url = f"{self.base_url}/login.aspx?sessionstate=disabled"
 
-        # Prepare credentials
-        data = {
-            'username': self.username,
-            'password': self.password
-        }
-
         try:
-            # POST login form
+            # Step 1: GET the login form to extract ViewState and other hidden fields
+            response = self.session.get(login_url, timeout=10)
+            response.raise_for_status()
+
+            # Parse the form to extract ASP.NET ViewState and other hidden fields
+            form_data = self._extract_form_fields(response.text)
+
+            # Step 2: Add credentials to form data
+            form_data['username'] = self.username
+            form_data['password'] = self.password
+            form_data['rememberMeChk'] = 'on'
+
+            # Step 3: POST the login form with all required fields
+            # Set referer to the login page for proper form submission
+            headers = {
+                'Referer': login_url,
+                'Origin': self.base_url,
+            }
+
             response = self.session.post(
                 login_url,
-                data=data,
+                data=form_data,
+                headers=headers,
                 allow_redirects=True,
                 timeout=10
             )
             response.raise_for_status()
 
             # Verify login was successful
-            # Compass redirects to home page or returns auth cookie
-            if 'Set-Cookie' not in response.headers and response.status_code != 200:
+            # Successful login should redirect away from login.aspx
+            if 'login.aspx' in response.url.lower():
                 raise Exception("Login failed: Invalid credentials or server error")
 
             # Try to extract userId and schoolConfigKey from the response
@@ -75,6 +110,39 @@ class CompassClient:
 
         except requests.RequestException as e:
             raise Exception(f"Login request failed: {e}")
+
+    def _extract_form_fields(self, html_content: str) -> Dict[str, str]:
+        """
+        Extract all form fields from the login page HTML.
+
+        This includes hidden fields like __VIEWSTATE and __VIEWSTATEGENERATOR
+        which are required by ASP.NET forms.
+
+        Args:
+            html_content: HTML content of the login page
+
+        Returns:
+            Dictionary of form field names and values
+        """
+        soup = BeautifulSoup(html_content, 'html.parser')
+        form_data = {}
+
+        # Find all input fields in the form
+        form = soup.find('form')
+        if form:
+            for input_field in form.find_all('input'):
+                name = input_field.get('name')
+                value = input_field.get('value', '')
+                if name:
+                    form_data[name] = value
+
+        # Ensure we have the postback event target (for the submit button)
+        if '__EVENTTARGET' not in form_data:
+            form_data['__EVENTTARGET'] = 'button1'
+        if '__EVENTARGUMENT' not in form_data:
+            form_data['__EVENTARGUMENT'] = ''
+
+        return form_data
 
     def _extract_session_metadata(self, html_content: str) -> None:
         """
