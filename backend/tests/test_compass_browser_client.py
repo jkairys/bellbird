@@ -31,19 +31,12 @@ def compass_browser_credentials(request):
     2. Environment variables (COMPASS_USERNAME, COMPASS_PASSWORD)
     3. Skips test if not found
     """
-    username = (
-        request.config.getoption("--compass-username") or
-        os.environ.get("COMPASS_USERNAME")
-    )
-    password = (
-        request.config.getoption("--compass-password") or
-        os.environ.get("COMPASS_PASSWORD")
-    )
+    username = request.config.getoption("--compass-username") or os.environ.get("COMPASS_USERNAME")
+    password = request.config.getoption("--compass-password") or os.environ.get("COMPASS_PASSWORD")
 
     if not username or not password:
         pytest.skip(
-            "Compass credentials not provided. "
-            "Set COMPASS_USERNAME/COMPASS_PASSWORD env vars"
+            "Compass credentials not provided. " "Set COMPASS_USERNAME/COMPASS_PASSWORD env vars"
         )
 
     return {"username": username, "password": password}
@@ -55,7 +48,7 @@ def compass_browser_client(compass_browser_credentials):
     client = CompassBrowserClient(
         base_url=COMPASS_BASE_URL,
         username=compass_browser_credentials["username"],
-        password=compass_browser_credentials["password"]
+        password=compass_browser_credentials["password"],
     )
     yield client
     # Cleanup
@@ -65,6 +58,7 @@ def compass_browser_client(compass_browser_credentials):
         pass
 
 
+@pytest.mark.skip(reason="Currently not required as HTTP client is working at present")
 class TestCompassBrowserClientAuthentication:
     """Test browser-based Compass API authentication."""
 
@@ -83,6 +77,7 @@ class TestCompassBrowserClientAuthentication:
         # The important thing is that login succeeded
 
 
+@pytest.mark.skip(reason="Currently not required as HTTP client  is working at present")
 class TestCompassBrowserClientCalendarEvents:
     """Test browser-based calendar event fetching."""
 

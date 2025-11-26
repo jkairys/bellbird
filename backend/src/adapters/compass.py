@@ -11,6 +11,10 @@ import re
 from datetime import datetime
 from typing import Optional, Dict, List, Any
 from bs4 import BeautifulSoup
+from logging import getLogger
+
+
+logger = getLogger(__name__)
 
 
 class CompassClient:
@@ -29,7 +33,7 @@ class CompassClient:
             username: Compass username
             password: Compass password
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.username = username
         self.password = password
         self.session = requests.Session()
@@ -44,19 +48,21 @@ class CompassClient:
 
         Compass may block requests that don't look like they come from a real browser.
         """
-        self.session.headers.update({
-            'User-Agent': (
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/142.0.0.0 Safari/537.36'
-            ),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-AU,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/142.0.0.0 Safari/537.36"
+                ),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-AU,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+            }
+        )
 
     def login(self) -> bool:
         """
@@ -67,6 +73,8 @@ class CompassClient:
         """
         login_url = f"{self.base_url}/login.aspx?sessionstate=disabled"
 
+        logger.info("Attempting to log in to Compass at %s", login_url)
+
         try:
             # Step 1: GET the login form to extract ViewState and other hidden fields
             response = self.session.get(login_url, timeout=10)
@@ -76,29 +84,25 @@ class CompassClient:
             form_data = self._extract_form_fields(response.text)
 
             # Step 2: Add credentials to form data
-            form_data['username'] = self.username
-            form_data['password'] = self.password
-            form_data['rememberMeChk'] = 'on'
+            form_data["username"] = self.username
+            form_data["password"] = self.password
+            form_data["rememberMeChk"] = "on"
 
             # Step 3: POST the login form with all required fields
             # Set referer to the login page for proper form submission
             headers = {
-                'Referer': login_url,
-                'Origin': self.base_url,
+                "Referer": login_url,
+                "Origin": self.base_url,
             }
 
             response = self.session.post(
-                login_url,
-                data=form_data,
-                headers=headers,
-                allow_redirects=True,
-                timeout=10
+                login_url, data=form_data, headers=headers, allow_redirects=True, timeout=10
             )
             response.raise_for_status()
 
             # Verify login was successful
             # Successful login should redirect away from login.aspx
-            if 'login.aspx' in response.url.lower():
+            if "login.aspx" in response.url.lower():
                 raise Exception("Login failed: Invalid credentials or server error")
 
             # Try to extract userId and schoolConfigKey from the response
@@ -124,23 +128,23 @@ class CompassClient:
         Returns:
             Dictionary of form field names and values
         """
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, "html.parser")
         form_data = {}
 
         # Find all input fields in the form
-        form = soup.find('form')
+        form = soup.find("form")
         if form:
-            for input_field in form.find_all('input'):
-                name = input_field.get('name')
-                value = input_field.get('value', '')
+            for input_field in form.find_all("input"):
+                name = input_field.get("name")
+                value = input_field.get("value", "")
                 if name:
                     form_data[name] = value
 
         # Ensure we have the postback event target (for the submit button)
-        if '__EVENTTARGET' not in form_data:
-            form_data['__EVENTTARGET'] = 'button1'
-        if '__EVENTARGUMENT' not in form_data:
-            form_data['__EVENTARGUMENT'] = ''
+        if "__EVENTTARGET" not in form_data:
+            form_data["__EVENTTARGET"] = "button1"
+        if "__EVENTARGUMENT" not in form_data:
+            form_data["__EVENTARGUMENT"] = ""
 
         return form_data
 
@@ -182,10 +186,7 @@ class CompassClient:
             raise Exception("Failed to extract userId from Compass session")
 
     def get_calendar_events(
-        self,
-        start_date: str,  # YYYY-MM-DD
-        end_date: str,    # YYYY-MM-DD
-        limit: int = 100
+        self, start_date: str, end_date: str, limit: int = 100  # YYYY-MM-DD  # YYYY-MM-DD
     ) -> List[Dict[str, Any]]:
         """
         Fetch calendar events from Compass for a date range.
@@ -211,27 +212,24 @@ class CompassClient:
         )
 
         payload = {
-            'userId': self.user_id,
-            'homePage': True,
-            'activityId': None,
-            'locationId': None,
-            'staffIds': None,
-            'startDate': start_date,
-            'endDate': end_date,
-            'page': 1,
-            'start': 0,
-            'limit': limit
+            "userId": self.user_id,
+            "homePage": True,
+            "activityId": None,
+            "locationId": None,
+            "staffIds": None,
+            "startDate": start_date,
+            "endDate": end_date,
+            "page": 1,
+            "start": 0,
+            "limit": limit,
         }
 
         try:
             response = self.session.post(
                 api_url,
                 json=payload,
-                headers={
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                timeout=10
+                headers={"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest"},
+                timeout=10,
             )
             response.raise_for_status()
 
@@ -239,8 +237,8 @@ class CompassClient:
             data = response.json()
 
             # Extract actual events from response
-            if isinstance(data, dict) and 'd' in data:
-                events = data['d']
+            if isinstance(data, dict) and "d" in data:
+                events = data["d"]
             else:
                 events = data
 
