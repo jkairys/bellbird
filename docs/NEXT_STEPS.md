@@ -2,41 +2,17 @@
 
 ## Current Status
 
-✅ **Authentication Working** - Puppeteer-based Compass authentication successfully implemented and tested
+✅ **Authentication Working** - HTTP-based Compass authentication successfully implemented and tested
 ✅ **Mock Client Available** - Realistic test data for development without credentials
 ✅ **Project Structure** - Complete scaffold with Poetry, database models, and API framework
-
-## Immediate Priority: Optimize CompassClient Session Management
-
-The current implementation logs in on every request (~10-15s overhead). We need to implement session persistence.
-
-### Tasks
-1. **Persistent Browser Context**
-   - Keep Puppeteer browser instance alive between requests
-   - Reuse authenticated session instead of logging in each time
-   - Implement connection pooling for concurrent requests
-
-2. **Cookie Caching**
-   - Store session cookies in database (encrypted)
-   - Check cookie validity before login
-   - Refresh cookies when expired
-
-3. **Session Lifecycle Management**
-   - Detect session expiration from API responses
-   - Auto-re-authenticate when needed
-   - Graceful browser cleanup on shutdown
-
-### Success Criteria
-- First request: ~10-15s (includes login)
-- Subsequent requests: < 2s (reuses session)
-- Session persists across app restarts (via cached cookies)
+✅ **Fast Performance** - Direct HTTP client authenticates and fetches events in ~1 second
 
 ## Phase 1: MVP Development (Next 2-3 Weeks)
 
 ### Week 1: Core Infrastructure
-- [ ] Implement optimized CompassClient with session persistence
 - [ ] Database layer (`src/db/database.py`, `src/db/models.py`)
 - [ ] Credential encryption (`src/db/credentials.py`)
+- [ ] Session cookie persistence in database (optional - requests already handles sessions well)
 - [ ] Basic unit tests for database layer
 
 ### Week 2: Filtering & API
@@ -54,18 +30,35 @@ The current implementation logs in on every request (~10-15s overhead). We need 
 ## Technical Debt to Address
 
 ### High Priority
-1. Remove debug files in `debug_screenshots/` and logs
-2. Clean up test files (remove old browser automation tests)
-3. Update CLAUDE.md with current architecture
+1. ✅ Remove debug files and temporary test scripts
+2. ✅ Clean up browser automation code and tests
+3. Update CLAUDE.md with current HTTP-based architecture
 
 ### Medium Priority
 1. Add retry logic for transient Compass API failures
 2. Implement rate limiting to avoid overwhelming Compass
 3. Add comprehensive error messages for users
+4. Handle session expiration and auto-re-authentication
 
 ### Low Priority
 1. Consider switching from SQLite to PostgreSQL for production
 2. Evaluate cloud deployment options (Cloud Run, etc.)
+
+## Compass Client Optimization (Optional)
+
+The current HTTP client is already fast (~1s total), but we could further optimize:
+
+### Optional Session Persistence
+- Store session cookies in database (encrypted)
+- Check cookie validity before login
+- Refresh cookies when expired
+
+### Session Lifecycle
+- Detect session expiration from API responses (401/403)
+- Auto-re-authenticate when needed
+- Graceful session cleanup
+
+**Note:** The current implementation already uses `requests.Session()` which handles cookies automatically for the duration of the Python process. Database persistence is only needed if we want sessions to survive app restarts.
 
 ## Future Enhancements (Phase 2+)
 
@@ -79,34 +72,71 @@ The current implementation logs in on every request (~10-15s overhead). We need 
 - Google Calendar sync
 - Email/SMS notifications
 - Event tagging and categorization
-- Multi-child support
-- Mobile app
+- Custom filter rules per child
+- Mobile app (React Native)
 
-## Resources Needed
+### Scalability
+- Deploy to Google Cloud Run
+- Implement job queue for event syncing
+- Add caching layer (Redis)
+- Database migration to Cloud SQL
 
-### Development
-- Compass test credentials (already have)
-- Claude API key (already have)
-- Node.js runtime (already installed)
+## Development Workflow
 
-### Deployment
-- TBD based on MVP completion
+### Daily Development
+```bash
+cd backend
+
+# Run tests
+poetry run pytest -v
+
+# Run specific test file
+poetry run pytest tests/test_compass_client_real.py -v
+
+# Code formatting
+poetry run black src tests
+
+# Linting
+poetry run flake8 src tests
+
+# Type checking
+poetry run mypy src
+```
+
+### Testing with Real Credentials
+```bash
+# Ensure .env is configured
+cat .env
+
+# Run integration tests
+poetry run pytest tests/test_compass_client_real.py::test_login -v
+poetry run pytest tests/test_compass_client_real.py::test_get_calendar_events -v
+```
+
+### Testing with Mock Data
+```bash
+# No credentials needed
+poetry run pytest tests/test_compass_mock_client.py -v
+```
+
+## Documentation Updates Needed
+
+1. **README.md** - Add quickstart guide
+2. **CLAUDE.md** - Update with HTTP client architecture
+3. **API_REFERENCE.md** - Document all API endpoints (when implemented)
+4. **DEPLOYMENT.md** - Cloud deployment instructions (when ready)
 
 ## Success Metrics
 
-### MVP Launch
-- [ ] Can authenticate with Compass in < 2s (after first login)
-- [ ] Can fetch and filter 2 weeks of events
-- [ ] Web UI functional and responsive
-- [ ] All tests passing (>80% coverage)
+### MVP (Phase 1)
+- [ ] User can configure credentials via UI
+- [ ] User can add child profiles with filtering rules
+- [ ] User can view filtered calendar events
+- [ ] Events are fetched and filtered within 5 seconds
+- [ ] System works reliably for 1 week without manual intervention
 
-### Production Ready
-- [ ] Session management optimized
-- [ ] Error handling comprehensive
-- [ ] User documentation complete
-- [ ] Deployed and accessible
-
----
-
-**Last Updated:** November 24, 2025
-**Focus:** Optimize CompassClient session management to eliminate repetitive logins
+### Production (Phase 2)
+- [ ] Support for 10+ concurrent users
+- [ ] 99% uptime
+- [ ] Events sync every 6 hours automatically
+- [ ] Support for multiple schools/sources

@@ -22,8 +22,6 @@ pytest-cov = "^4.1.0"
 black = "^23.0.0"
 flake8 = "^6.0.0"
 mypy = "^1.0.0"
-pyppeteer = "^1.0.2"
-pyppeteer-stealth = "^2.7.4"
 
 [tool.poetry.scripts]
 bellweaver = "src.cli:main"

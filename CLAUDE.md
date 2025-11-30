@@ -13,6 +13,7 @@ This file documents key information about the Bellweaver project to help Claude 
 ## Tech Stack
 
 ### Backend
+
 - **Language**: Python 3.10+
 - **Package Manager**: Poetry
 - **Web Framework**: Flask
@@ -22,10 +23,12 @@ This file documents key information about the Bellweaver project to help Claude 
 - **LLM Integration**: Anthropic Claude API
 
 ### Frontend
+
 - **HTML/JS/CSS** - Simple vanilla JS (Phase 1)
 - **Static assets** in `frontend/` directory
 
 ### Development Tools
+
 - **Testing**: pytest + pytest-cov
 - **Formatting**: black
 - **Linting**: flake8
@@ -73,6 +76,7 @@ bellweaver/
 ## Architecture & Data Flow
 
 ### Layered Architecture
+
 ```
 CLI/Web UI
     ↓
@@ -85,48 +89,10 @@ Database Layer (SQLAlchemy)
     └─ Encryption (Fernet)
 ```
 
-### Event Flow
-1. **Fetch**: Compass API → Raw events cached in SQLite
-2. **Filter**: Raw events + child profile + rules → Claude API → Filtered results
-3. **Display**: Filtered events shown in CLI or Web UI
-
-### Database Schema
-- `credentials` - Encrypted login credentials (username, password_encrypted, source)
-- `user_config` - Child profile and preferences (child_name, school, year_level, class, interests, filter_rules)
-- `raw_events_cache` - Unmodified Compass API responses (stored as JSON blobs)
-- `filtered_events` - Claude-filtered results with reasoning (event_id, is_relevant, reason, action_needed)
-- `sync_metadata` - Sync status and timestamps (last_sync_time, sync_status, error_message)
-
-## Key Design Decisions
-
-1. **No Browser Automation**
-   - Uses direct HTTP requests to Compass API (not Puppeteer/JS library)
-   - Faster startup, lower memory, simpler to debug
-   - See COMPASS_PYTHON_CLIENT_PLAN.md for implementation details
-
-2. **Local-First MVP**
-   - SQLite database for development (no cloud setup needed)
-   - Credentials encrypted locally with Fernet
-   - Data stored in `data/` directory (git-ignored)
-
-3. **LLM-Powered Filtering**
-   - Claude API handles fuzzy matching and natural language interpretation
-   - Filters based on free-text rules + child profile
-   - Results cached to avoid repeated API calls
-
-4. **Mock Data for Development**
-   - `CompassMockClient` provides realistic synthetic events
-   - Allows testing without real credentials during development
-   - Same interface as real adapter (easy to swap)
-
-5. **Dual Interface (CLI + Web)**
-   - CLI for testing and batch operations
-   - Flask web app for user-facing UI
-   - Both use same database and filtering logic
-
 ## Environment & Configuration
 
 ### Required Environment Variables
+
 ```bash
 CLAUDE_API_KEY                  # Anthropic API key (required)
 BELLWEAVER_ENCRYPTION_KEY         # Fernet encryption key (auto-generated on first run)
@@ -157,32 +123,38 @@ poetry run flask run            # Flask development server (when implemented)
 ## Phase 1 MVP Roadmap (10 Days)
 
 ### Days 1-2: Database Foundation
+
 - [ ] Implement `backend/src/db/database.py` (SQLAlchemy session, schema creation)
 - [ ] Implement `backend/src/db/models.py` (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
 - [ ] Implement `backend/src/db/credentials.py` (encrypted credential storage)
 
 ### Days 2-3: Testing Framework (Parallel)
+
 - [ ] Implement `backend/src/adapters/compass_mock.py` (15-20 synthetic events)
 - [ ] Add unit tests for mock adapter
 
 ### Days 3-5: Filtering & Real Integration
+
 - [ ] Implement `backend/src/filtering/llm_filter.py` (Claude API integration)
 - [ ] Implement `backend/src/adapters/compass.py` (real Compass API client)
 - [ ] Test with real credentials
 
 ### Days 5-7: Web & CLI
+
 - [ ] Implement `backend/src/cli.py` (argument parser, commands: --fetch, --filter, --full, --show-filtered)
 - [ ] Implement `backend/src/app.py` (Flask app factory)
 - [ ] Implement `backend/src/api/routes.py` (REST endpoints: /config, /sync, /events, /sync-status)
 - [ ] Implement `backend/src/api/schemas.py` (request/response validation)
 
 ### Days 7-9: User Interface
+
 - [ ] Implement `frontend/` application structure
 - [ ] Implement onboarding form UI
 - [ ] Implement event dashboard UI
 - [ ] Implement basic styling and API integration
 
 ### Days 9-10: Integration & Polish
+
 - [ ] End-to-end testing
 - [ ] Error handling and edge cases
 - [ ] Documentation
@@ -194,6 +166,7 @@ poetry run flask run            # Flask development server (when implemented)
 **Approach**: Direct HTTP requests to Compass API (no browser automation)
 
 **Authentication**:
+
 1. POST credentials to `/login.aspx`
 2. Capture cookies and session metadata
 3. Reuse cookies for API calls via `requests.Session()`
@@ -201,6 +174,7 @@ poetry run flask run            # Flask development server (when implemented)
 **API Endpoint**: `POST /Services/Calendar.svc/GetCalendarEventsByUser`
 
 **Payload Structure**:
+
 ```python
 {
     'userId': int,
@@ -225,6 +199,7 @@ See `docs/COMPASS_PYTHON_CLIENT_PLAN.md` for full implementation details.
 **Usage**: Filtering calendar events based on user config
 
 **Prompt Structure**:
+
 - Child profile (name, school, year level, class, interests)
 - Filter rules (free text)
 - Raw calendar events (JSON array)
@@ -253,6 +228,7 @@ All documentation is in the `docs/` directory except README.md and this file.
 ## Common Patterns & Conventions
 
 ### Database Access
+
 ```python
 from src.db.database import get_session
 from src.db.models import UserConfig
@@ -262,6 +238,7 @@ with get_session() as session:
 ```
 
 ### Encryption
+
 ```python
 from src.db.credentials import CredentialManager
 
@@ -271,6 +248,7 @@ username, password = cred_manager.load_compass_credentials()
 ```
 
 ### LLM Filtering
+
 ```python
 from src.filtering.llm_filter import LLMFilter
 
@@ -295,17 +273,20 @@ poetry run bellweaver --show-filtered
 ## Testing Strategy
 
 ### Unit Tests
+
 - Test each adapter (mock and real Compass)
 - Test filtering logic with mock data
 - Test database operations (CRUD)
 - Test credential encryption/decryption
 
 ### Integration Tests
+
 - Test full pipeline: fetch → normalize → filter → display
 - Test CLI with mock data
 - Test Flask endpoints
 
 ### Test Data
+
 - Use `CompassMockClient` for development
 - Real Compass credentials for integration testing
 - Synthetic user configs for filtering tests
@@ -313,17 +294,20 @@ poetry run bellweaver --show-filtered
 ## Git Workflow
 
 ### Repository Status
+
 - **Current Branch**: main
 - **Status**: Initial project structure, ready for implementation
 - **Gitignore**: Properly configured for Python + project-specific files
 
 ### Files to Never Commit
+
 - `backend/.env` (has API keys)
 - `backend/.venv/` (virtual environment)
 - `backend/data/bellweaver.db` (user data)
 - `__pycache__/` and `.pytest_cache/`
 
 ### Commit Message Style
+
 - Clear, imperative ("Add database models" not "Added")
 - Reference the component ("db:" or "api:" prefix)
 - Example: "db: add encrypted credential storage"
@@ -333,6 +317,7 @@ poetry run bellweaver --show-filtered
 All troubleshooting commands should be run from the `backend/` directory:
 
 ### Poetry Issues
+
 ```bash
 cd backend
 poetry lock --refresh
@@ -341,6 +326,7 @@ poetry cache clear . --all
 ```
 
 ### Database Issues
+
 ```bash
 cd backend
 rm data/bellweaver.db  # Reset database
@@ -348,12 +334,14 @@ poetry run pytest    # Verify tests pass
 ```
 
 ### Type Checking
+
 ```bash
 cd backend
 poetry run mypy src  # Full type check
 ```
 
 ### Code Quality
+
 ```bash
 cd backend
 poetry run black src tests       # Auto-format
@@ -377,6 +365,7 @@ poetry run mypy src              # Check types
 ## Phase 2 Considerations
 
 When expanding beyond Compass:
+
 - Implement normalization layer for multi-source events
 - Create adapter interface for Class Dojo, HubHello, Xplore
 - Enhance filtering to handle cross-source event deduplication
