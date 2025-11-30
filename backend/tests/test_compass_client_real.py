@@ -69,15 +69,11 @@ class TestCompassClientRealAuthentication:
 
     def test_login_success(self, compass_client):
         """Test successful login to Compass."""
-        # Should not raise an exception
-        result = compass_client.login()
-        assert result is True
+        # Fixture already performs login
         assert compass_client._authenticated is True
 
     def test_user_id_extracted_after_login(self, compass_client):
         """Test that userId is extracted after successful login."""
-        compass_client.login()
-
         # userId should be extracted from the login response
         assert compass_client.user_id is not None
         assert isinstance(compass_client.user_id, int)
@@ -85,8 +81,6 @@ class TestCompassClientRealAuthentication:
 
     def test_session_established(self, compass_client):
         """Test that session cookies are established after login."""
-        compass_client.login()
-
         # Session should have cookies from the login response
         assert len(compass_client.session.cookies) > 0
 
@@ -96,8 +90,6 @@ class TestCompassClientRealUserDetails:
 
     def test_fetch_user_details_current_user(self, compass_client):
         """Test fetching user details for the current authenticated user."""
-        compass_client.login()
-
         user_details = compass_client.get_user_details()
 
         # Should return a dictionary
@@ -111,8 +103,6 @@ class TestCompassClientRealUserDetails:
 
     def test_fetch_user_details_specific_user(self, compass_client):
         """Test fetching user details for a specific user ID."""
-        compass_client.login()
-
         # Use the authenticated user's ID as the target
         user_id = compass_client.user_id
         user_details = compass_client.get_user_details(target_user_id=user_id)
@@ -126,8 +116,6 @@ class TestCompassClientRealUserDetails:
 
     def test_fetch_user_details_has_expected_fields(self, compass_client):
         """Test that user details contain expected Compass fields."""
-        compass_client.login()
-
         user_details = compass_client.get_user_details()
 
         # Common expected fields (though they may be null)
@@ -165,8 +153,6 @@ class TestCompassClientRealCalendarEvents:
 
     def test_fetch_calendar_events_current_month(self, compass_client):
         """Test fetching calendar events for current month."""
-        compass_client.login()
-
         # Get events for current month
         today = datetime.now()
         start_date = today.replace(day=1).strftime("%Y-%m-%d")
@@ -190,8 +176,6 @@ class TestCompassClientRealCalendarEvents:
 
     def test_fetch_calendar_events_next_30_days(self, compass_client):
         """Test fetching calendar events for next 30 days."""
-        compass_client.login()
-
         today = datetime.now()
         start_date = today.strftime("%Y-%m-%d")
         end_date = (today + timedelta(days=30)).strftime("%Y-%m-%d")
@@ -210,8 +194,6 @@ class TestCompassClientRealCalendarEvents:
 
     def test_fetch_calendar_events_empty_range(self, compass_client):
         """Test fetching events from a date range far in the past."""
-        compass_client.login()
-
         # Query for a date range in the past
         start_date = "2020-01-01"
         end_date = "2020-01-31"
@@ -223,8 +205,6 @@ class TestCompassClientRealCalendarEvents:
 
     def test_fetch_calendar_events_single_day(self, compass_client):
         """Test fetching events for a single day."""
-        compass_client.login()
-
         today = datetime.now()
         date_str = today.strftime("%Y-%m-%d")
 
@@ -235,8 +215,6 @@ class TestCompassClientRealCalendarEvents:
 
     def test_calendar_events_has_expected_fields(self, compass_client):
         """Test that calendar events have expected Compass fields."""
-        compass_client.login()
-
         today = datetime.now()
         start_date = today.strftime("%Y-%m-%d")
         end_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
@@ -306,8 +284,6 @@ class TestCompassClientRealDateRanges:
 
     def test_fetch_events_large_date_range(self, compass_client):
         """Test fetching events over a large date range."""
-        compass_client.login()
-
         # 1 year range
         start_date = "2025-01-01"
         end_date = "2025-12-31"
