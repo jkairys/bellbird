@@ -10,6 +10,21 @@ This file documents key information about the Bellweaver project to help Claude 
 
 **Solution**: Single dashboard showing relevant calendar events for each child, powered by Claude API for intelligent filtering.
 
+## Workflow
+
+- When starting a new context / session, create a new branch on which to commit all changes
+  - always start branches by pullling the latest from `main`
+  - to determine branch name:
+    - summarise the intent of the session into a git-friendly slug, e.g. `add-tabs-to-school-details` and
+    - generate a string represntation of the current date in `YYYYMMDD-HH24MISS` format, e.g. `20251201-093322`
+  - create a new branch using `<slug>-<date>` e.g. `add-tabs-to-school-details-20241201093322`
+  - make changes to files interactively during the session
+  - commit changes to the branch as you go - whenever you prompt for input, you should commit your changes before showing the prompt
+- When you are done
+  - run tests and fix if failing
+  - update documentation
+  - push the branch to the remote and let me review and merge it
+
 ## Tech Stack
 
 ### Backend
