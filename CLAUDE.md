@@ -56,7 +56,10 @@ bellweaver/
 │   ├── public/                  # Static assets
 │   └── README.md                # Frontend setup instructions
 │
-├── docs/                        # Project documentation
+├── docs/                         # Project documentation
+│   ├── index.md                  # Documentation index & current status
+│   ├── quick-start.md           # 5-minute setup guide
+│   └── architecture.md          # System design & technical decisions
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # Main project README
 ```
@@ -103,6 +106,47 @@ poetry run bellweaver --help    # CLI help (when implemented)
 
 All troubleshooting commands should be run from the `backend/` directory:
 
+## Documentation
+
+For detailed information, see:
+
+- **[docs/index.md](docs/index.md)** - Complete documentation index, current status, and roadmap
+- **[docs/quick-start.md](docs/quick-start.md)** - Setup instructions
+- **[docs/architecture.md](docs/architecture.md)** - System design and technical decisions
+
+## Current Implementation Status
+
+### What's Working ✅
+
+1. **Compass HTTP Client** (`backend/src/adapters/compass.py`)
+   - Direct HTTP authentication (no browser automation)
+   - Fast performance (~1 second)
+   - Integration tests passing
+
+2. **Mock Client** (`backend/src/adapters/compass_mock.py`)
+   - Realistic test data
+   - Same interface as real client
+
+3. **LLM Filter** (`backend/src/filtering/llm_filter.py`)
+   - Claude API integration
+   - Not yet integrated into pipeline
+
+4. **Credential Manager** (`backend/src/db/credentials.py`)
+   - Fernet encryption
+   - Not yet integrated with database
+
+### What's Not Built ⏳
+
+- Database layer (SQLAlchemy models, schema)
+- Flask API routes
+- Web UI
+- CLI interface
+- End-to-end pipeline integration
+
 ## References & Resources
 
 - [Unofficial Compass API Client](https://github.com/heheleo/compass-education)
+- [Anthropic Claude API Docs](https://docs.anthropic.com)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org)
+- [Flask Documentation](https://flask.palletsprojects.com)
+- [Poetry Documentation](https://python-poetry.org/docs)

@@ -4,10 +4,9 @@ A unified school calendar event aggregation and filtering tool that consolidates
 
 ## Documentation
 
-- **[Full Documentation](docs/INDEX.md)** - Complete documentation index
-- **[Quick Start](docs/QUICK_START.md)** - Get started in 5 minutes
-- **[Next Steps](docs/NEXT_STEPS.md)** - Current development priorities
-- **[Implementation Status](docs/IMPLEMENTATION_SUMMARY.md)** - What's working now
+- **[Documentation Index](docs/index.md)** - Complete documentation and current status
+- **[Quick Start](docs/quick-start.md)** - Get started in 5 minutes
+- **[Architecture](docs/architecture.md)** - System design and technical decisions
 
 ## Project Vision
 
@@ -20,10 +19,12 @@ Parents receive overwhelming amounts of communication from multiple school sourc
 
 ## Current Status
 
-✅ **Authentication Working** - Puppeteer-based Compass authentication functional
+✅ **Compass HTTP Client** - Direct HTTP authentication working (~1 second)
 ✅ **Tests Passing** - Integration tests with real credentials working
-⚠️ **Performance Issue** - Currently logs in on every request (~10-15s)
-🎯 **Next Priority** - Optimize session management (see [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md))
+✅ **Mock Client** - Realistic test data for development
+⏳ **In Progress** - Database integration, API routes, and filtering pipeline
+
+See [docs/index.md](docs/index.md) for detailed status.
 
 ## MVP Scope (Phase 1)
 
@@ -86,9 +87,9 @@ bellweaver/
 │   └── README.md                # Frontend setup instructions
 │
 ├── docs/                         # Project documentation
-│   ├── INDEX.md                 # Documentation index
-│   ├── QUICK_START.md           # Quick start guide
-│   └── ...                      # Other docs
+│   ├── index.md                 # Documentation index
+│   ├── quick-start.md           # Quick start guide
+│   └── architecture.md          # Technical design
 │
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # This file
@@ -252,17 +253,18 @@ poetry run flask run --debug
 
 ## Next Steps
 
-### Phase 1 (MVP - Days 1-10)
+### Phase 1 (MVP - Current Phase)
 
 - [x] Project scaffold with Poetry
-- [ ] Database layer with encryption
-- [ ] Mock Compass adapter
-- [ ] Real Compass adapter
+- [x] Compass HTTP client
+- [x] Mock Compass adapter
+- [x] LLM filter implementation
+- [x] Credential encryption
+- [x] Integration tests
+- [ ] Database layer integration
 - [ ] CLI interface
-- [ ] Flask backend
+- [ ] Flask backend API
 - [ ] Web UI
-- [ ] Unit tests
-- [ ] Documentation
 
 ### Phase 2 (Multi-Source)
 
