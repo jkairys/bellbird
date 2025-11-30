@@ -4,8 +4,9 @@ Collect real Compass data for use as mock data in development.
 
 This script:
 1. Authenticates with Compass using credentials from .env
-2. Fetches calendar events for the next 30 days
-3. Saves the raw response to data/mock/compass_events.json
+2. Fetches user details for the authenticated user
+3. Fetches calendar events for the next 30 days
+4. Saves the raw responses to data/mock/compass_*.json
 """
 
 import os
@@ -50,6 +51,17 @@ def main():
         client.login()
         print("✓ Authenticated successfully")
 
+        # Fetch user details
+        print("Fetching user details...")
+        user_details = client.get_user_details()
+        print(f"✓ Fetched user details for {user_details.get('userFullName', 'unknown')}")
+
+        # Save user details
+        user_details_file = output_dir / 'compass_user_details.json'
+        with open(user_details_file, 'w') as f:
+            json.dump(user_details, f, indent=2, default=str)
+        print(f"✓ Saved user details to {user_details_file}")
+
         # Fetch events for next 30 days
         start_date = datetime.now().strftime('%Y-%m-%d')
         end_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
@@ -65,9 +77,12 @@ def main():
         print(f"✓ Saved events to {events_file}")
 
         print("\nSuccess! Mock data collected.")
+        print(f"  User: {user_details.get('userFullName', 'unknown')}")
         print(f"  Total events: {len(events)}")
         print(f"  Date range: {start_date} to {end_date}")
-        print(f"  Output: {events_file}")
+        print(f"  Output files:")
+        print(f"    - {user_details_file}")
+        print(f"    - {events_file}")
 
     except Exception as e:
         print(f"Error: {e}")
