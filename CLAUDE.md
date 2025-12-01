@@ -83,9 +83,19 @@ bellweaver/
 │   ├── .env.example             # Environment variables template
 │   └── poetry.lock              # Locked dependencies
 │
-├── frontend/                    # Frontend application (TBD)
+├── frontend/                    # Frontend React application
 │   ├── src/                     # Source files
-│   ├── public/                  # Static assets
+│   │   ├── components/          # React components
+│   │   │   ├── Dashboard.jsx    # Main dashboard component
+│   │   │   └── Dashboard.css    # Dashboard styles
+│   │   ├── services/            # API service layer
+│   │   │   └── api.js           # API client for backend
+│   │   ├── App.jsx              # Root component
+│   │   ├── main.jsx             # Entry point
+│   │   └── index.css            # Global styles
+│   ├── index.html               # HTML template
+│   ├── vite.config.js           # Vite configuration with API proxy
+│   ├── package.json             # npm dependencies
 │   └── README.md                # Frontend setup instructions
 │
 ├── docs/                         # Project documentation
@@ -228,15 +238,33 @@ For detailed information, see:
        - Fetches most recent get_user_details batch
        - Parses payloads using CompassUser Pydantic model
        - Returns parsed JSON with batch metadata
+     - **GET /events**: Returns calendar events from Compass
+       - Fetches most recent get_events batch
+       - Parses payloads using CompassEvent Pydantic model
+       - Returns parsed JSON with batch metadata and event list
    - Usage:
      - **Recommended**: `poetry run bellweaver api serve [--debug]`
      - **Legacy**: `poetry run python -m bellweaver.app` (deprecated)
    - Note: Backward compatibility maintained via `bellweaver/app.py`
 
+9. **React Frontend** (`frontend/`)
+   - Vite-based React application
+   - Dashboard component displaying user details and events
+   - API service layer with error handling
+   - Features:
+     - Displays user name and email from /user endpoint
+     - Shows first 10 upcoming calendar events from /events endpoint
+     - Responsive design with dark/light mode support
+     - Loading states and error handling
+     - Event cards with time, date, location, and attendees
+   - Development server with hot reload (port 3000)
+   - API proxy configured to Flask backend (port 5000)
+   - All 116 npm packages installed successfully
+
 ### What's Not Built ⏳
 
-- Additional Flask API routes (events, filtering)
-- Web UI
+- Event filtering by child/relevance
+- LLM-based event filtering integration
 - End-to-end pipeline integration
 
 ## References & Resources
