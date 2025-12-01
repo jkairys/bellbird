@@ -74,7 +74,7 @@ bellweaver/
 │   │   │   └── commands/        # CLI command modules
 │   │   │       ├── mock.py      # Mock data management
 │   │   │       └── compass.py   # Compass sync commands
-│   │   └── app.py               # [TODO] Flask application factory
+│   │   └── app.py               # Flask application factory
 │   ├── tests/                    # Unit & integration tests
 │   ├── data/                     # Runtime data directory (gitignored)
 │   │   └── bellweaver.db         # SQLite database created at runtime
@@ -212,9 +212,22 @@ For detailed information, see:
        - Usage: `poetry run bellweaver compass sync [--days N] [--limit N]`
    - All 75 tests passing
 
+8. **Flask API** (`backend/bellweaver/app.py`)
+   - Flask application factory pattern
+   - REST API endpoints for accessing aggregated data
+   - Routes implemented:
+     - **GET /user**: Returns latest user details from Compass
+       - Fetches most recent get_user_details batch
+       - Parses payloads using CompassUser Pydantic model
+       - Returns parsed JSON with batch metadata
+   - Usage: `poetry run python -m bellweaver.app`
+   - Environment variables:
+     - `FLASK_DEBUG=true` to enable debug mode and reloader
+   - Note: Debug reloader can cause database connection issues; disabled by default
+
 ### What's Not Built ⏳
 
-- Flask API routes
+- Additional Flask API routes (events, filtering)
 - Web UI
 - End-to-end pipeline integration
 
