@@ -5,13 +5,14 @@ Models:
 - Credential: Encrypted API credentials storage
 - Batch: Adapter method invocation tracking
 - ApiPayload: Raw API response storage with batch tracking
+- Event: Normalized calendar event storage
 """
 
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.sqlite import JSON as SQLiteJSON
 from sqlalchemy.orm import relationship
 
@@ -102,3 +103,53 @@ class ApiPayload(Base):
             Parsed JSON payload
         """
         return self.payload if isinstance(self.payload, dict) else {}
+
+
+class Event(Base):
+    """
+    Normalized calendar event storage.
+
+    Platform-agnostic representation of calendar events from any source.
+    Maintains lineage to original ApiPayload for traceability.
+    """
+
+    __tablename__ = "events"
+
+    id = Column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False
+    )
+
+    # Foreign key to original API payload for lineage tracking
+    api_payload_id = Column(
+        String(36), ForeignKey("api_payloads.id"), nullable=False, index=True
+    )
+
+    # Core event fields
+    title = Column(String(500), nullable=False)
+    start = Column(DateTime, nullable=False, index=True)
+    end = Column(DateTime, nullable=False)
+    description = Column(Text, nullable=True)
+    location = Column(String(500), nullable=True)
+    all_day = Column(Boolean, default=False, nullable=False)
+
+    # Additional fields
+    organizer = Column(String(255), nullable=True)
+    attendees = Column(SQLiteJSON, nullable=True)  # Stored as JSON array
+    status = Column(String(50), nullable=True)
+
+    # Metadata
+    created_at = Column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationship to ApiPayload
+    api_payload = relationship("ApiPayload")
+
+    def __repr__(self) -> str:
+        return f"<Event(id='{self.id}', title='{self.title}', start='{self.start}')>"
