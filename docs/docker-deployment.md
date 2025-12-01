@@ -26,10 +26,10 @@ The final container runs a Flask application that:
 Copy the example environment file and fill in your Compass credentials:
 
 ```bash
-cp .env.docker.example .env.docker
+cp .env.example .env
 ```
 
-Edit `.env.docker` with your credentials:
+Edit `.env` with your credentials:
 
 ```bash
 COMPASS_USERNAME=your_compass_username
@@ -37,7 +37,7 @@ COMPASS_PASSWORD=your_compass_password
 COMPASS_BASE_URL=https://your-school.compass.education
 ```
 
-**Important:** The `.env.docker` file is mounted into the container and shared with your local environment. When running locally (outside Docker), both environments use the same configuration and database.
+**Important:** The `.env` file is used by both Docker Compose and local development. When running locally (outside Docker), both environments use the same configuration and database.
 
 ### 2. Ensure data directory exists
 
@@ -66,7 +66,7 @@ This will:
 - Build the multi-stage Docker image (frontend + backend)
 - Start the container in detached mode
 - Mount `backend/data` for database persistence
-- Mount `.env.docker` for configuration
+- Load environment variables from `.env`
 - Expose the application on port 5000
 
 ### 4. Sync data from Compass
@@ -128,11 +128,11 @@ docker run -d \
   --name bellweaver \
   -p 5000:5000 \
   -v $(pwd)/backend/data:/app/data \
-  --env-file .env.docker \
+  --env-file .env \
   bellweaver:latest
 ```
 
-**Note:** Using `--env-file .env.docker` loads all environment variables from the file. Alternatively, you can pass them individually with `-e` flags:
+**Note:** Using `--env-file .env` loads all environment variables from the file. Alternatively, you can pass them individually with `-e` flags:
 
 ```bash
 docker run -d \
@@ -274,7 +274,7 @@ The Docker setup is designed to work seamlessly with local development:
 
 **Shared Resources:**
 - **Database**: `backend/data/bellweaver.db` is mounted into the container
-- **Environment**: `.env.docker` contains credentials used by both Docker and local development
+- **Environment**: `.env` contains credentials used by both Docker and local development
 - **State**: Changes made in Docker are visible locally and vice versa
 
 **Use Cases:**

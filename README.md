@@ -79,7 +79,6 @@ bellweaver/
 │   │   └── .gitkeep
 │   │
 │   ├── pyproject.toml           # Poetry configuration
-│   ├── .env.example             # Environment variables template
 │   └── README.md                # Backend setup instructions
 │
 ├── frontend/                     # Frontend application (TBD)
@@ -92,6 +91,7 @@ bellweaver/
 │   ├── quick-start.md           # Quick start guide
 │   └── architecture.md          # Technical design
 │
+├── .env.example                 # Environment template (for Docker and local)
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # This file
 ```
@@ -108,9 +108,9 @@ Quick start:
 
 ```bash
 # Copy environment template
-cp .env.docker.example .env.docker
+cp .env.example .env
 
-# Edit .env.docker with your Compass credentials
+# Edit .env with your Compass credentials
 # Then build and start
 docker-compose build
 docker-compose up -d
@@ -162,7 +162,7 @@ npm install
 4. **Set up environment variables**:
 
 ```bash
-cd ../backend
+# From project root
 cp .env.example .env
 ```
 
