@@ -172,16 +172,24 @@ For detailed information, see:
    - SQLAlchemy 2.0 setup with proper DeclarativeBase
    - `database.py`: Engine, session management, init functions
    - `models.py`: ORM models for data persistence
+     - **Batch**: Adapter method invocation tracking
+       - Stores metadata about each adapter method call
+       - Tracks adapter_id, method_name, and parameters (as JSON)
+       - Acts as foreign key for related ApiPayload records
+       - Supports cascade delete (deleting batch removes all payloads)
+       - Auto-generated UUID primary keys
      - **ApiPayload**: Stores raw API responses as JSON with batch tracking
        - Flexible schema to handle API changes gracefully
+       - Foreign key relationship to Batch model
        - Indexed by adapter_id, method_name, batch_id, created_at
        - Auto-generated UUID primary keys
      - **Credential**: Encrypted credential storage
        - Primary key on source (compass, classdojo, etc.)
        - Timestamps for created_at and updated_at
    - `credentials.py`: Credential encryption/decryption using Fernet
-   - Full test coverage (16 tests for database models)
-   - All 65 tests passing
+   - Foreign key constraints enabled in SQLite
+   - Full test coverage (26 tests for database models)
+   - All 75 tests passing
 
 6. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
    - Claude API integration

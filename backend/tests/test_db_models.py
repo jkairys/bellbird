@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from bellweaver.db.database import Base, init_db
-from bellweaver.db.models import ApiPayload, Credential
+from bellweaver.db.models import ApiPayload, Batch, Credential
 
 
 @pytest.fixture
@@ -26,6 +26,15 @@ def temp_db():
     # Set database URL to temp file
     db_url = f"sqlite:///{temp_path}"
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
+
+    # Enable foreign key constraints in SQLite
+    from sqlalchemy import event
+
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
@@ -132,11 +141,124 @@ class TestCredentialModel:
         assert "test_user" in repr(cred)
 
 
+class TestBatchModel:
+    """Tests for the Batch model."""
+
+    def test_create_batch(self, temp_db):
+        """Test creating a batch record."""
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            parameters={"start_date": "2025-12-01", "end_date": "2025-12-31"},
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        # Retrieve and verify
+        retrieved = temp_db.query(Batch).first()
+        assert retrieved is not None
+        assert retrieved.adapter_id == "compass"
+        assert retrieved.method_name == "get_calendar_events"
+        assert retrieved.parameters == {"start_date": "2025-12-01", "end_date": "2025-12-31"}
+        assert isinstance(retrieved.created_at, datetime)
+        assert isinstance(retrieved.id, str)
+
+    def test_batch_auto_id(self, temp_db):
+        """Test that batch ID is auto-generated as UUID."""
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        assert batch.id is not None
+        # Verify it's a valid UUID string
+        uuid.UUID(batch.id)
+
+    def test_batch_without_parameters(self, temp_db):
+        """Test creating a batch without parameters (nullable)."""
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_user_info",
+            parameters=None,
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        retrieved = temp_db.query(Batch).first()
+        assert retrieved.parameters is None
+
+    def test_batch_with_complex_parameters(self, temp_db):
+        """Test batch with complex nested parameters."""
+        complex_params = {
+            "filters": {
+                "date_range": {"start": "2025-12-01", "end": "2025-12-31"},
+                "categories": ["sports", "excursions"],
+            },
+            "options": {"include_cancelled": False, "max_results": 100},
+        }
+
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            parameters=complex_params,
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        retrieved = temp_db.query(Batch).first()
+        assert retrieved.parameters["filters"]["date_range"]["start"] == "2025-12-01"
+        assert retrieved.parameters["options"]["max_results"] == 100
+
+    def test_batch_repr(self, temp_db):
+        """Test string representation of Batch."""
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_events",
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        repr_str = repr(batch)
+        assert "compass" in repr_str
+        assert "get_events" in repr_str
+
+    def test_multiple_batches(self, temp_db):
+        """Test creating multiple batches."""
+        batches = []
+        for i in range(5):
+            batch = Batch(
+                adapter_id="compass",
+                method_name="get_calendar_events",
+                parameters={"page": i},
+            )
+            batches.append(batch)
+            temp_db.add(batch)
+
+        temp_db.commit()
+
+        # Verify all were created
+        assert temp_db.query(Batch).count() == 5
+
+        # Verify each has unique ID
+        batch_ids = [b.id for b in batches]
+        assert len(batch_ids) == len(set(batch_ids))  # All unique
+
+
 class TestApiPayloadModel:
     """Tests for the ApiPayload model."""
 
-    def test_create_api_payload(self, temp_db, sample_batch_id):
+    def test_create_api_payload(self, temp_db):
         """Test creating an API payload record."""
+        # First create a batch
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
         payload_data = {
             "activityId": 12345,
             "longTitle": "Test Event",
@@ -147,7 +269,7 @@ class TestApiPayloadModel:
         payload = ApiPayload(
             adapter_id="compass",
             method_name="get_calendar_events",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload=payload_data,
         )
         temp_db.add(payload)
@@ -158,17 +280,22 @@ class TestApiPayloadModel:
         assert retrieved is not None
         assert retrieved.adapter_id == "compass"
         assert retrieved.method_name == "get_calendar_events"
-        assert retrieved.batch_id == sample_batch_id
+        assert retrieved.batch_id == batch.id
         assert retrieved.payload == payload_data
         assert isinstance(retrieved.created_at, datetime)
         assert isinstance(retrieved.id, str)
 
-    def test_api_payload_auto_id(self, temp_db, sample_batch_id):
+    def test_api_payload_auto_id(self, temp_db):
         """Test that ID is auto-generated as UUID."""
+        # Create a batch first
+        batch = Batch(adapter_id="compass", method_name="get_calendar_events")
+        temp_db.add(batch)
+        temp_db.commit()
+
         payload = ApiPayload(
             adapter_id="compass",
             method_name="get_calendar_events",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload={"test": "data"},
         )
         temp_db.add(payload)
@@ -180,7 +307,10 @@ class TestApiPayloadModel:
 
     def test_batch_grouping(self, temp_db):
         """Test that records can be grouped by batch_id."""
-        batch_id = str(uuid.uuid4())
+        # Create a batch
+        batch = Batch(adapter_id="compass", method_name="get_calendar_events")
+        temp_db.add(batch)
+        temp_db.commit()
 
         # Create multiple payloads in same batch
         payloads = []
@@ -188,7 +318,7 @@ class TestApiPayloadModel:
             payload = ApiPayload(
                 adapter_id="compass",
                 method_name="get_calendar_events",
-                batch_id=batch_id,
+                batch_id=batch.id,
                 payload={"event_id": i},
             )
             payloads.append(payload)
@@ -197,21 +327,26 @@ class TestApiPayloadModel:
         temp_db.commit()
 
         # Query by batch_id
-        batch_records = temp_db.query(ApiPayload).filter_by(batch_id=batch_id).all()
+        batch_records = temp_db.query(ApiPayload).filter_by(batch_id=batch.id).all()
         assert len(batch_records) == 5
 
         # Verify all have same batch_id
-        assert all(record.batch_id == batch_id for record in batch_records)
+        assert all(record.batch_id == batch.id for record in batch_records)
 
     def test_multiple_adapters(self, temp_db):
         """Test storing payloads from multiple adapters."""
         adapters = ["compass", "classdojo", "hubhello", "xplore"]
 
         for adapter in adapters:
+            # Create batch for each adapter
+            batch = Batch(adapter_id=adapter, method_name="get_events")
+            temp_db.add(batch)
+            temp_db.commit()
+
             payload = ApiPayload(
                 adapter_id=adapter,
                 method_name="get_events",
-                batch_id=str(uuid.uuid4()),
+                batch_id=batch.id,
                 payload={"source": adapter},
             )
             temp_db.add(payload)
@@ -227,15 +362,20 @@ class TestApiPayloadModel:
             assert len(records) == 1
             assert records[0].payload["source"] == adapter
 
-    def test_multiple_methods(self, temp_db, sample_batch_id):
+    def test_multiple_methods(self, temp_db):
         """Test storing payloads from different method calls."""
         methods = ["get_calendar_events", "get_user_info", "get_school_details"]
+
+        # Create one batch
+        batch = Batch(adapter_id="compass", method_name="mixed")
+        temp_db.add(batch)
+        temp_db.commit()
 
         for method in methods:
             payload = ApiPayload(
                 adapter_id="compass",
                 method_name=method,
-                batch_id=sample_batch_id,
+                batch_id=batch.id,
                 payload={"method": method},
             )
             temp_db.add(payload)
@@ -248,8 +388,13 @@ class TestApiPayloadModel:
             assert len(records) == 1
             assert records[0].payload["method"] == method
 
-    def test_complex_json_payload(self, temp_db, sample_batch_id):
+    def test_complex_json_payload(self, temp_db):
         """Test storing complex nested JSON payloads."""
+        # Create batch first
+        batch = Batch(adapter_id="compass", method_name="get_event_details")
+        temp_db.add(batch)
+        temp_db.commit()
+
         complex_payload = {
             "event": {
                 "id": 12345,
@@ -268,7 +413,7 @@ class TestApiPayloadModel:
         payload = ApiPayload(
             adapter_id="compass",
             method_name="get_event_details",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload=complex_payload,
         )
         temp_db.add(payload)
@@ -280,14 +425,19 @@ class TestApiPayloadModel:
         assert len(retrieved.payload["event"]["attendees"]) == 2
         assert retrieved.payload["event"]["metadata"]["tags"] == ["important", "urgent"]
 
-    def test_get_payload_method(self, temp_db, sample_batch_id):
+    def test_get_payload_method(self, temp_db):
         """Test the get_payload() helper method."""
+        # Create batch first
+        batch = Batch(adapter_id="compass", method_name="test")
+        temp_db.add(batch)
+        temp_db.commit()
+
         payload_data = {"test": "data"}
 
         payload = ApiPayload(
             adapter_id="compass",
             method_name="test",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload=payload_data,
         )
         temp_db.add(payload)
@@ -298,12 +448,17 @@ class TestApiPayloadModel:
         assert isinstance(result, dict)
         assert result == payload_data
 
-    def test_api_payload_repr(self, temp_db, sample_batch_id):
+    def test_api_payload_repr(self, temp_db):
         """Test string representation of ApiPayload."""
+        # Create batch first
+        batch = Batch(adapter_id="compass", method_name="get_events")
+        temp_db.add(batch)
+        temp_db.commit()
+
         payload = ApiPayload(
             adapter_id="compass",
             method_name="get_events",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload={"test": "data"},
         )
         temp_db.add(payload)
@@ -312,16 +467,20 @@ class TestApiPayloadModel:
         repr_str = repr(payload)
         assert "compass" in repr_str
         assert "get_events" in repr_str
-        assert sample_batch_id in repr_str
+        assert batch.id in repr_str
 
     def test_query_by_created_at(self, temp_db):
         """Test that created_at is indexed and queryable."""
         # Create payloads
         for i in range(3):
+            batch = Batch(adapter_id="compass", method_name="test")
+            temp_db.add(batch)
+            temp_db.commit()
+
             payload = ApiPayload(
                 adapter_id="compass",
                 method_name="test",
-                batch_id=str(uuid.uuid4()),
+                batch_id=batch.id,
                 payload={"index": i},
             )
             temp_db.add(payload)
@@ -337,13 +496,18 @@ class TestApiPayloadModel:
         assert recent is not None
         assert recent.payload["index"] == 2  # Last created
 
-    def test_schema_flexibility(self, temp_db, sample_batch_id):
+    def test_schema_flexibility(self, temp_db):
         """Test that different payload structures can be stored (schema flexibility)."""
+        # Create batch
+        batch = Batch(adapter_id="compass", method_name="get_events")
+        temp_db.add(batch)
+        temp_db.commit()
+
         # Old schema
         old_payload = ApiPayload(
             adapter_id="compass",
             method_name="get_events",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload={"eventId": 1, "title": "Old Event"},
         )
 
@@ -351,7 +515,7 @@ class TestApiPayloadModel:
         new_payload = ApiPayload(
             adapter_id="compass",
             method_name="get_events",
-            batch_id=sample_batch_id,
+            batch_id=batch.id,
             payload={
                 "eventId": 2,
                 "title": "New Event",
@@ -365,7 +529,7 @@ class TestApiPayloadModel:
         temp_db.commit()
 
         # Both should be retrievable
-        records = temp_db.query(ApiPayload).filter_by(batch_id=sample_batch_id).all()
+        records = temp_db.query(ApiPayload).filter_by(batch_id=batch.id).all()
         assert len(records) == 2
 
         # Verify old and new schemas coexist
@@ -375,6 +539,119 @@ class TestApiPayloadModel:
         assert "newField" not in old.payload
         assert "newField" in new.payload
         assert new.payload["newField"] == "new data"
+
+
+class TestBatchApiPayloadRelationship:
+    """Tests for the relationship between Batch and ApiPayload models."""
+
+    def test_batch_to_payload_relationship(self, temp_db):
+        """Test accessing payloads from a batch."""
+        # Create a batch
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            parameters={"start_date": "2025-12-01"},
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        # Create multiple payloads for this batch
+        for i in range(3):
+            payload = ApiPayload(
+                adapter_id="compass",
+                method_name="get_calendar_events",
+                batch_id=batch.id,
+                payload={"event_id": i},
+            )
+            temp_db.add(payload)
+
+        temp_db.commit()
+
+        # Access payloads through batch relationship
+        assert len(batch.payloads) == 3
+        assert all(isinstance(p, ApiPayload) for p in batch.payloads)
+        assert all(p.batch_id == batch.id for p in batch.payloads)
+
+    def test_payload_to_batch_relationship(self, temp_db):
+        """Test accessing batch from a payload."""
+        # Create a batch
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            parameters={"start_date": "2025-12-01"},
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        # Create a payload
+        payload = ApiPayload(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            batch_id=batch.id,
+            payload={"event_id": 1},
+        )
+        temp_db.add(payload)
+        temp_db.commit()
+
+        # Access batch through payload relationship
+        assert payload.batch is not None
+        assert payload.batch.id == batch.id
+        assert payload.batch.adapter_id == "compass"
+        assert payload.batch.parameters["start_date"] == "2025-12-01"
+
+    def test_cascade_delete(self, temp_db):
+        """Test that deleting a batch deletes all its payloads."""
+        # Create a batch
+        batch = Batch(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+        )
+        temp_db.add(batch)
+        temp_db.commit()
+
+        batch_id = batch.id
+
+        # Create payloads
+        for i in range(5):
+            payload = ApiPayload(
+                adapter_id="compass",
+                method_name="get_calendar_events",
+                batch_id=batch.id,
+                payload={"event_id": i},
+            )
+            temp_db.add(payload)
+
+        temp_db.commit()
+
+        # Verify payloads exist
+        assert temp_db.query(ApiPayload).filter_by(batch_id=batch_id).count() == 5
+
+        # Delete the batch
+        temp_db.delete(batch)
+        temp_db.commit()
+
+        # Verify all payloads are deleted (cascade)
+        assert temp_db.query(ApiPayload).filter_by(batch_id=batch_id).count() == 0
+        assert temp_db.query(Batch).filter_by(id=batch_id).count() == 0
+
+    def test_foreign_key_constraint(self, temp_db):
+        """Test that foreign key constraint prevents orphaned payloads."""
+        # Try to create a payload with non-existent batch_id
+        non_existent_batch_id = str(uuid.uuid4())
+
+        payload = ApiPayload(
+            adapter_id="compass",
+            method_name="get_calendar_events",
+            batch_id=non_existent_batch_id,
+            payload={"event_id": 1},
+        )
+        temp_db.add(payload)
+
+        # This should fail due to foreign key constraint
+        with pytest.raises(Exception):  # SQLAlchemy will raise an integrity error
+            temp_db.commit()
+
+        temp_db.rollback()
 
 
 class TestDatabaseSetup:
@@ -400,6 +677,7 @@ class TestDatabaseSetup:
             tables = inspector.get_table_names()
 
             assert "credentials" in tables
+            assert "batches" in tables
             assert "api_payloads" in tables
 
             # Cleanup engine

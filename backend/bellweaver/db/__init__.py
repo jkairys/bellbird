@@ -1,7 +1,7 @@
 """Database layer for Bellweaver."""
 
 from bellweaver.db.database import Base, SessionLocal, engine, get_db, init_db
-from bellweaver.db.models import ApiPayload, Credential
+from bellweaver.db.models import ApiPayload, Batch, Credential
 
 __all__ = [
     "Base",
@@ -10,5 +10,6 @@ __all__ = [
     "get_db",
     "init_db",
     "Credential",
+    "Batch",
     "ApiPayload",
 ]
