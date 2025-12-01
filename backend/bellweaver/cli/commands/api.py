@@ -3,8 +3,9 @@ CLI commands for managing the Bellweaver API server.
 """
 
 import os
-import typer
 from typing import Optional
+
+import typer
 
 app = typer.Typer(help="Manage the Bellweaver API server")
 
@@ -27,6 +28,7 @@ def serve(
         False,
         "--debug",
         "-d",
+        envvar="FLASK_DEBUG",
         help="Enable debug mode with auto-reloader",
     ),
 ):

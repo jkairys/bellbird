@@ -23,8 +23,8 @@ FROM python:3.11-slim AS backend
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+  gcc \
+  && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -52,7 +52,6 @@ RUN mkdir -p /app/data
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV FLASK_APP=bellweaver.api
 ENV DATABASE_PATH=/app/data/bellweaver.db
 
 # Expose port
@@ -63,4 +62,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD python -c "import requests; requests.get('http://localhost:5000/api/user', timeout=5)" || exit 1
 
 # Run the application
-CMD ["python", "-m", "bellweaver.api"]
+CMD ["bellweaver", "api", "serve"]

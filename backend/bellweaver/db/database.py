@@ -19,6 +19,8 @@ DB_PATH = DATA_DIR / "bellweaver.db"
 # Database URL
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
+print(f"Using DATABASE_URL={DATABASE_URL}")
+
 # Create engine
 engine = create_engine(
     DATABASE_URL,

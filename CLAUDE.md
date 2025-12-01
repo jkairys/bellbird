@@ -69,13 +69,12 @@ bellweaver/
 │   │   ├── api/                 # Flask REST API
 │   │   │   ├── __init__.py      # Flask application factory
 │   │   │   └── routes.py        # Domain-specific route handlers (user_bp, etc.)
-│   │   ├── cli/                 # Command-line interface
-│   │   │   ├── main.py          # Main CLI app and entry point
-│   │   │   └── commands/        # CLI command modules
-│   │   │       ├── mock.py      # Mock data management
-│   │   │       ├── compass.py   # Compass sync commands
-│   │   │       └── api.py       # API server commands
-│   │   └── app.py               # DEPRECATED: Use 'bellweaver.api' instead
+│   │   └── cli/                 # Command-line interface
+│   │       ├── main.py          # Main CLI app and entry point
+│   │       └── commands/        # CLI command modules
+│   │           ├── mock.py      # Mock data management
+│   │           ├── compass.py   # Compass sync commands
+│   │           └── api.py       # API server commands
 │   ├── tests/                    # Unit & integration tests
 │   ├── data/                     # Runtime data directory (gitignored)
 │   │   └── bellweaver.db         # SQLite database created at runtime
