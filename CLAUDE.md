@@ -61,7 +61,7 @@ bellweaver/
 │   │   │   └── compass.py       # Transforms raw dicts → validated Pydantic models
 │   │   ├── db/                  # Database layer
 │   │   │   ├── database.py      # SQLAlchemy session, connection, schema
-│   │   │   ├── models.py        # ORM models (Credential, UserConfig, RawEvent, FilteredEvent, SyncMetadata)
+│   │   │   ├── models.py        # ORM models (Credential, ApiPayload)
 │   │   │   └── credentials.py   # Encrypted credential storage/retrieval
 │   │   ├── models/              # Pydantic/dataclass models
 │   │   │   ├── compass.py       # Compass API data models (CompassEvent, CompassUser)
@@ -168,17 +168,27 @@ For detailed information, see:
    - CompassUser model with all fields
    - Proper field aliases (camelCase → snake_case)
 
-5. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
+5. **Database Layer** (`backend/bellweaver/db/`)
+   - SQLAlchemy 2.0 setup with proper DeclarativeBase
+   - `database.py`: Engine, session management, init functions
+   - `models.py`: ORM models for data persistence
+     - **ApiPayload**: Stores raw API responses as JSON with batch tracking
+       - Flexible schema to handle API changes gracefully
+       - Indexed by adapter_id, method_name, batch_id, created_at
+       - Auto-generated UUID primary keys
+     - **Credential**: Encrypted credential storage
+       - Primary key on source (compass, classdojo, etc.)
+       - Timestamps for created_at and updated_at
+   - `credentials.py`: Credential encryption/decryption using Fernet
+   - Full test coverage (16 tests for database models)
+   - All 65 tests passing
+
+6. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
    - Claude API integration
    - Not yet integrated into pipeline
 
-6. **Credential Manager** (`backend/bellweaver/db/credentials.py`)
-   - Fernet encryption
-   - Not yet integrated with database
-
 ### What's Not Built ⏳
 
-- Database layer (SQLAlchemy models, schema)
 - Flask API routes
 - Web UI
 - CLI interface
