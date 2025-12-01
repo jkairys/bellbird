@@ -93,7 +93,6 @@ bellweaver/
 │   ├── data/                     # Runtime data directory (gitignored)
 │   │   └── bellweaver.db         # SQLite database created at runtime
 │   ├── pyproject.toml           # Poetry configuration + tool settings
-│   ├── .env.example             # Environment variables template
 │   └── poetry.lock              # Locked dependencies
 │
 ├── frontend/                    # Frontend React application
@@ -115,6 +114,7 @@ bellweaver/
 │   ├── index.md                  # Documentation index & current status
 │   ├── quick-start.md           # 5-minute setup guide
 │   └── architecture.md          # System design & technical decisions
+├── .env.example                 # Environment variables template (for Docker and local)
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # Main project README
 ```
@@ -123,32 +123,40 @@ bellweaver/
 
 ### Environment Files
 
-The project uses two environment file approaches:
+The project uses a single `.env` file in the repository root for both Docker and local development:
 
-1. **For Docker**: `.env.docker` (in project root)
-   - Used by docker-compose.yml via `env_file: .env.docker`
-   - Mounted into container and shared with local development
-   - Template: `.env.docker.example`
-
-2. **For local development**: `backend/.env`
-   - Used when running locally outside Docker
-   - Template: `backend/.env.example`
+- **Location**: `.env` (in project root)
+- **Template**: `.env.example` (in project root)
+- **Usage**:
+  - Docker Compose reads this file via `env_file: .env`
+  - Local development can read from the same file
+- **Setup**: Copy `.env.example` to `.env` and fill in your values
 
 **Note:** The Docker setup mounts `backend/data/` as a volume, so the SQLite database is shared between Docker and local environments. You can use the same database whether running in Docker or locally.
 
 ### Required Environment Variables
 
 ```bash
-# Credentials for Compass API
-COMPASS_USERNAME=""
-COMPASS_PASSWORD=""
-COMPASS_BASE_URL=""
+# Compass API credentials (required)
+COMPASS_USERNAME=your_compass_username
+COMPASS_PASSWORD=your_compass_password
+COMPASS_BASE_URL=https://your-school.compass.education
 
-# Optional: Database path (defaults to backend/data/bellweaver.db)
-DATABASE_PATH=""
+# Claude API Key (required)
+CLAUDE_API_KEY=your-anthropic-api-key-here
+
+# Database Encryption Key (auto-generated on first run if not provided)
+BELLWEAVER_ENCRYPTION_KEY=will-be-auto-generated-on-first-run
+
+# Flask Configuration (optional)
+FLASK_ENV=development
+FLASK_DEBUG=1
+
+# Database location (optional, defaults to data/bellweaver.db)
+DATABASE_URL=sqlite:///./data/bellweaver.db
 ```
 
-See `backend/.env.example` or `.env.docker.example` for full templates.
+See `.env.example` in the project root for the full template.
 
 ### Poetry Commands
 
@@ -180,7 +188,7 @@ docker exec -it bellweaver bash
 
 ### Files to Never Commit
 
-- `backend/.env` and `.env.docker` (contain API keys and credentials)
+- `.env` (contains API keys and credentials)
 - `backend/.venv/` (virtual environment)
 - `backend/data/bellweaver.db` (user data)
 - `frontend/node_modules/` (npm dependencies)

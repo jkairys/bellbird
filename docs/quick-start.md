@@ -11,9 +11,9 @@ See **[Docker Deployment Guide](docker-deployment.md)** for complete instruction
 Quick start:
 ```bash
 # Copy environment file
-cp .env.docker.example .env.docker
+cp .env.example .env
 
-# Edit .env.docker with your Compass credentials
+# Edit .env with your Compass credentials
 # Then build and start
 docker-compose up -d
 
@@ -34,13 +34,10 @@ docker exec -it bellweaver bellweaver compass sync
 ## First Time Setup
 
 ```bash
-# 1. Navigate to backend directory
-cd backend
-
-# 2. Copy environment template
+# 1. Copy environment template (from project root)
 cp .env.example .env
 
-# 3. Edit with your credentials
+# 2. Edit with your credentials
 vim .env
 
 # Add the following to .env:
@@ -49,7 +46,8 @@ vim .env
 # COMPASS_BASE_URL=https://your-school.compass.education
 # CLAUDE_API_KEY=sk-ant-xxxxx (optional, for future filtering features)
 
-# 4. Install dependencies
+# 3. Navigate to backend directory and install dependencies
+cd backend
 poetry install --with dev
 ```
 
@@ -138,10 +136,10 @@ bellweaver/
 │   ├── tests/
 │   │   ├── test_compass_client_real.py  # ✅ Integration tests (working)
 │   │   └── test_fixtures.py             # ✅ Fixture tests (working)
-│   ├── pyproject.toml            # Poetry configuration
-│   └── .env.example              # Environment template
+│   └── pyproject.toml            # Poetry configuration
 │
 ├── docs/                         # Documentation
+├── .env.example                  # Environment template (for Docker and local)
 └── README.md                     # Project overview
 ```
 
@@ -175,7 +173,7 @@ poetry install --with dev
 
 ```bash
 # Check .env file has correct credentials
-cat backend/.env
+cat .env
 
 # Ensure you're in the backend directory
 cd backend

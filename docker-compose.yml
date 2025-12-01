@@ -13,7 +13,7 @@ services:
       # Persist database outside container
       - ./backend/data:/app/data
     restart: unless-stopped
-    env_file: .env.docker
+    env_file: .env
     healthcheck:
       test:
         [
