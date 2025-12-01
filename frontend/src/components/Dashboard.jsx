@@ -48,7 +48,8 @@ function Dashboard() {
   }
 
   const displayEvents = events?.events?.slice(0, 10) || [];
-  const userName = user?.user?.display_name || 'User';
+  const userName = user?.user?.user_preferred_name || user?.user?.user_first_name || 'User';
+  const userFullName = user?.user?.user_full_name;
 
   return (
     <div className="dashboard">
@@ -56,9 +57,10 @@ function Dashboard() {
         <h1>Welcome, {userName}</h1>
         {user?.user && (
           <div className="user-info">
-            <p><strong>Email:</strong> {user.user.email || 'N/A'}</p>
-            {user.user.import_identifier && (
-              <p><strong>ID:</strong> {user.user.import_identifier}</p>
+            {userFullName && <p><strong>Full Name:</strong> {userFullName}</p>}
+            <p><strong>Email:</strong> {user.user.user_email || 'N/A'}</p>
+            {user.user.user_display_code && (
+              <p><strong>Display Code:</strong> {user.user.user_display_code}</p>
             )}
           </div>
         )}
@@ -77,9 +79,9 @@ function Dashboard() {
         ) : (
           <div className="events-list">
             {displayEvents.map((event, index) => (
-              <div key={event.id || index} className="event-card">
+              <div key={event.activity_id || event.instance_id || index} className="event-card">
                 <div className="event-header">
-                  <h3>{event.title}</h3>
+                  <h3>{event.long_title_without_time || event.long_title || event.title}</h3>
                   {event.all_day ? (
                     <span className="event-badge all-day">All Day</span>
                   ) : (
@@ -102,7 +104,7 @@ function Dashboard() {
                     })}
                   </p>
 
-                  {event.description && (
+                  {event.description && event.description.trim() && (
                     <p className="event-description">{event.description}</p>
                   )}
 
@@ -110,9 +112,9 @@ function Dashboard() {
                     <p className="event-location">📍 {event.location}</p>
                   )}
 
-                  {event.attendees && event.attendees.length > 0 && (
+                  {event.managers && event.managers.length > 0 && (
                     <p className="event-attendees">
-                      👥 {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
+                      👥 {event.managers.length} manager{event.managers.length !== 1 ? 's' : ''}
                     </p>
                   )}
                 </div>
