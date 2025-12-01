@@ -5,7 +5,7 @@ Bellweaver CLI - Command-line interface for the Bellweaver application.
 import typer
 from typing import Optional
 
-from bellweaver.cli.commands import mock
+from bellweaver.cli.commands import mock, compass
 
 app = typer.Typer(
     name="bellweaver",
@@ -15,6 +15,7 @@ app = typer.Typer(
 
 # Register command groups
 app.add_typer(mock.app, name="mock")
+app.add_typer(compass.app, name="compass")
 
 
 def version_callback(value: bool):
