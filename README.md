@@ -98,25 +98,34 @@ bellweaver/
 
 ## Deployment Options
 
-### Option 1: Docker (Recommended for Production)
+### Option 1: Docker (Recommended - Easiest)
 
 See **[Docker Deployment Guide](docs/docker-deployment.md)** for complete instructions.
+
+The Docker setup uses a multi-stage build that packages both frontend and backend into a single container. The database and environment file are mounted as volumes, so they're shared between Docker and local development.
 
 Quick start:
 
 ```bash
 # Copy environment template
-cp .env.docker.example .env
+cp .env.docker.example .env.docker
 
-# Edit .env with your Compass credentials
-# Then start with Docker Compose
+# Edit .env.docker with your Compass credentials
+# Then build and start
+docker-compose build
 docker-compose up -d
 
-# Sync data from Compass
+# Sync data from Compass (can run in Docker or locally)
 docker exec -it bellweaver bellweaver compass sync
 
 # Access at http://localhost:5000
 ```
+
+**Key features:**
+- Single container serves both frontend and backend
+- Database persists in `backend/data/` (mounted volume)
+- Same environment and database used whether running in Docker or locally
+- No data migration needed when switching between Docker and local development
 
 ### Option 2: Local Development
 

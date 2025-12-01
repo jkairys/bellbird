@@ -40,6 +40,20 @@ osascript -e 'display notification "Waiting for your input" with title "Claude C
 
 - **Language**: Python
 - **Package Manager**: Poetry
+- **Web Framework**: Flask
+- **Database**: SQLite with SQLAlchemy ORM
+- **CLI**: Typer
+
+### Frontend
+
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Package Manager**: npm
+
+### Deployment
+
+- **Containerization**: Docker (multi-stage build)
+- **Orchestration**: Docker Compose
 
 ### Development Tools
 
@@ -107,6 +121,21 @@ bellweaver/
 
 ## Environment & Configuration
 
+### Environment Files
+
+The project uses two environment file approaches:
+
+1. **For Docker**: `.env.docker` (in project root)
+   - Used by docker-compose.yml via `env_file: .env.docker`
+   - Mounted into container and shared with local development
+   - Template: `.env.docker.example`
+
+2. **For local development**: `backend/.env`
+   - Used when running locally outside Docker
+   - Template: `backend/.env.example`
+
+**Note:** The Docker setup mounts `backend/data/` as a volume, so the SQLite database is shared between Docker and local environments. You can use the same database whether running in Docker or locally.
+
 ### Required Environment Variables
 
 ```bash
@@ -114,9 +143,12 @@ bellweaver/
 COMPASS_USERNAME=""
 COMPASS_PASSWORD=""
 COMPASS_BASE_URL=""
+
+# Optional: Database path (defaults to backend/data/bellweaver.db)
+DATABASE_PATH=""
 ```
 
-See `backend/.env.example` for full template.
+See `backend/.env.example` or `.env.docker.example` for full templates.
 
 ### Poetry Commands
 
@@ -127,14 +159,32 @@ poetry install --with dev       # Install all dependencies
 poetry run pytest               # Run tests
 poetry add package-name         # Add production dependency
 poetry add --group dev pkg      # Add dev dependency
-poetry run bellweaver --help    # CLI help (when implemented)
+poetry run bellweaver compass sync  # Sync data from Compass
+poetry run bellweaver api serve     # Start API server
+```
+
+### Docker Commands
+
+All Docker commands should be run from the project root:
+
+```bash
+docker-compose build            # Build the container
+docker-compose up -d            # Start in detached mode
+docker-compose logs -f          # View logs
+docker-compose down             # Stop and remove container
+
+# Execute commands inside the container
+docker exec -it bellweaver bellweaver compass sync
+docker exec -it bellweaver bash
 ```
 
 ### Files to Never Commit
 
-- `backend/.env` (has API keys)
+- `backend/.env` and `.env.docker` (contain API keys and credentials)
 - `backend/.venv/` (virtual environment)
 - `backend/data/bellweaver.db` (user data)
+- `frontend/node_modules/` (npm dependencies)
+- `frontend/dist/` (built frontend files)
 - `__pycache__/` and `.pytest_cache/`
 
 ### Commit Message Style
@@ -259,6 +309,16 @@ For detailed information, see:
    - Development server with hot reload (port 3000)
    - API proxy configured to Flask backend (port 5000)
    - All 116 npm packages installed successfully
+
+10. **Docker Deployment**
+    - Multi-stage Dockerfile combining frontend and backend
+    - `Dockerfile`: Builds React frontend in stage 1, copies into Flask static dir in stage 2
+    - `docker-compose.yml`: Orchestration with volume mounts
+    - Shared environment: `backend/data/` mounted so database is shared between Docker and local
+    - Environment file: `.env.docker` mounted and used by container
+    - Health checks configured
+    - Single container serves both frontend (port 5000) and API (port 5000/api)
+    - Can sync data either in Docker or locally - both write to same database
 
 ### What's Not Built ⏳
 

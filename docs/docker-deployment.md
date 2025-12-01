@@ -26,10 +26,10 @@ The final container runs a Flask application that:
 Copy the example environment file and fill in your Compass credentials:
 
 ```bash
-cp .env.docker.example .env
+cp .env.docker.example .env.docker
 ```
 
-Edit `.env` with your credentials:
+Edit `.env.docker` with your credentials:
 
 ```bash
 COMPASS_USERNAME=your_compass_username
@@ -37,51 +37,61 @@ COMPASS_PASSWORD=your_compass_password
 COMPASS_BASE_URL=https://your-school.compass.education
 ```
 
-### 2. Create data directory
+**Important:** The `.env.docker` file is mounted into the container and shared with your local environment. When running locally (outside Docker), both environments use the same configuration and database.
+
+### 2. Ensure data directory exists
+
+The database directory is automatically created, but you can verify it exists:
 
 ```bash
-mkdir -p data
+mkdir -p backend/data
 ```
 
-This directory will persist your SQLite database outside the container.
+**Important:** The `backend/data` directory is mounted as a volume in the container, so the SQLite database (`bellweaver.db`) is shared between Docker and local environments. This means:
+- Data persists when the container is stopped/restarted
+- The same database is used whether running in Docker or locally
+- No data migration needed when switching between Docker and local development
 
-### 3. Start the application
+### 3. Build and start the application
 
 ```bash
+# Build the image
+docker-compose build
+
+# Start the container in detached mode
 docker-compose up -d
 ```
 
 This will:
-- Build the Docker image (first time only)
+- Build the multi-stage Docker image (frontend + backend)
 - Start the container in detached mode
+- Mount `backend/data` for database persistence
+- Mount `.env.docker` for configuration
 - Expose the application on port 5000
 
-### 4. Access the application
-
-Open your browser to:
-- **Frontend**: http://localhost:5000
-- **API**: http://localhost:5000/api/user or http://localhost:5000/api/events
-
-### 5. Sync data from Compass
+### 4. Sync data from Compass
 
 Before the dashboard will show data, you need to sync from Compass:
 
 ```bash
-# Enter the running container
-docker exec -it bellweaver bash
-
-# Sync user details and calendar events
-bellweaver compass sync
-
-# Exit the container
-exit
-```
-
-Or run as a one-liner:
-
-```bash
+# Run sync inside the container
 docker exec -it bellweaver bellweaver compass sync
 ```
+
+Alternatively, you can run the sync command locally (outside Docker) and it will use the same database:
+
+```bash
+cd backend
+poetry run bellweaver compass sync
+```
+
+Both approaches write to the same `backend/data/bellweaver.db` file.
+
+### 5. Access the application
+
+Open your browser to:
+- **Frontend**: http://localhost:5000
+- **API**: http://localhost:5000/api/user or http://localhost:5000/api/events
 
 ### 6. View logs
 
@@ -95,10 +105,10 @@ docker-compose logs -f
 docker-compose down
 ```
 
-To also remove the database volume:
+**Note:** This stops and removes the container but preserves the database in `backend/data/`. To also remove the database, manually delete the data directory:
 
 ```bash
-docker-compose down -v
+rm -rf backend/data/
 ```
 
 ## Manual Docker Commands
@@ -117,11 +127,29 @@ docker build -t bellweaver:latest .
 docker run -d \
   --name bellweaver \
   -p 5000:5000 \
-  -v $(pwd)/data:/app/data \
+  -v $(pwd)/backend/data:/app/data \
+  --env-file .env.docker \
+  bellweaver:latest
+```
+
+**Note:** Using `--env-file .env.docker` loads all environment variables from the file. Alternatively, you can pass them individually with `-e` flags:
+
+```bash
+docker run -d \
+  --name bellweaver \
+  -p 5000:5000 \
+  -v $(pwd)/backend/data:/app/data \
   -e COMPASS_USERNAME=your_username \
   -e COMPASS_PASSWORD=your_password \
   -e COMPASS_BASE_URL=https://your-school.compass.education \
+  -e DATABASE_PATH=/app/data/bellweaver.db \
   bellweaver:latest
+```
+
+### Sync data
+
+```bash
+docker exec -it bellweaver bellweaver compass sync
 ```
 
 ### View logs
@@ -130,12 +158,14 @@ docker run -d \
 docker logs -f bellweaver
 ```
 
-### Stop the container
+### Stop and remove the container
 
 ```bash
 docker stop bellweaver
 docker rm bellweaver
 ```
+
+The database persists in `backend/data/` even after container removal.
 
 ## API Routes
 
@@ -190,7 +220,20 @@ Check that the data directory is mounted correctly:
 docker inspect bellweaver | grep -A 10 Mounts
 ```
 
-You should see `/app/data` mounted to your local `./data` directory.
+You should see `/app/data` mounted to your local `./backend/data` directory.
+
+### Data synced in Docker not visible locally (or vice versa)
+
+Both environments should share the same database. Verify:
+
+1. Check that docker-compose.yml mounts `./backend/data:/app/data`
+2. Check that `DATABASE_PATH=/app/data/bellweaver.db` is set
+3. Verify the database file exists:
+   ```bash
+   ls -la backend/data/bellweaver.db
+   ```
+
+If you synced data locally, it should be visible in Docker and vice versa.
 
 ## Production Considerations
 
@@ -223,13 +266,60 @@ docker-compose build
 docker-compose up -d
 ```
 
-## Development vs Production
+## Development Workflows
 
-In development, you run frontend and backend separately:
-- Frontend: `npm run dev` on port 3000 (with Vite proxy to backend)
-- Backend: `poetry run bellweaver api serve` on port 5000
+### Shared Environment Between Docker and Local
 
-In production (Docker), both are served from a single container:
-- Flask serves static frontend files from `/`
-- Flask serves API from `/api/*`
-- All traffic goes to port 5000
+The Docker setup is designed to work seamlessly with local development:
+
+**Shared Resources:**
+- **Database**: `backend/data/bellweaver.db` is mounted into the container
+- **Environment**: `.env.docker` contains credentials used by both Docker and local development
+- **State**: Changes made in Docker are visible locally and vice versa
+
+**Use Cases:**
+
+1. **Run API in Docker, develop locally:**
+   ```bash
+   # Start API in Docker
+   docker-compose up -d
+
+   # Sync data (can run locally or in Docker)
+   poetry run bellweaver compass sync
+
+   # Access API at http://localhost:5000
+   ```
+
+2. **Run everything in Docker:**
+   ```bash
+   docker-compose up -d
+   docker exec -it bellweaver bellweaver compass sync
+   # Access at http://localhost:5000
+   ```
+
+3. **Local development mode (separate frontend/backend):**
+   ```bash
+   # Terminal 1: Backend
+   cd backend
+   poetry run bellweaver api serve --debug
+
+   # Terminal 2: Frontend
+   cd frontend
+   npm run dev
+   # Access at http://localhost:3000 (proxies to backend on 5000)
+   ```
+
+### Development vs Production Modes
+
+**Development (local):**
+- Frontend: `npm run dev` on port 3000 with hot reload
+- Backend: `poetry run bellweaver api serve --debug` on port 5000
+- Vite proxy forwards `/api/*` requests to backend
+- Fast iteration with hot module replacement
+
+**Production (Docker):**
+- Frontend: Built static files served by Flask from `/`
+- Backend: Flask API serves from `/api/*`
+- Single container on port 5000
+- Client-side routing handled by Flask fallback to `index.html`
+- No Vite dev server overhead

@@ -2,10 +2,34 @@
 
 Get up and running in 5 minutes.
 
+## Choose Your Setup Method
+
+### Option 1: Docker (Recommended - Easiest)
+
+See **[Docker Deployment Guide](docker-deployment.md)** for complete instructions.
+
+Quick start:
+```bash
+# Copy environment file
+cp .env.docker.example .env.docker
+
+# Edit .env.docker with your Compass credentials
+# Then build and start
+docker-compose up -d
+
+# Sync data
+docker exec -it bellweaver bellweaver compass sync
+
+# Access at http://localhost:5000
+```
+
+### Option 2: Local Development Setup
+
 ## Prerequisites
 
 - Python 3.10+ (currently using 3.12.9)
 - Poetry for dependency management
+- Node.js 20+ (for frontend development)
 
 ## First Time Setup
 
@@ -27,6 +51,39 @@ vim .env
 
 # 4. Install dependencies
 poetry install --with dev
+```
+
+## Using the CLI
+
+```bash
+cd backend
+
+# Sync data from Compass
+poetry run bellweaver compass sync
+
+# Sync with custom date range
+poetry run bellweaver compass sync --days 30
+
+# Start the API server
+poetry run bellweaver api serve
+
+# Start with debug mode
+poetry run bellweaver api serve --debug
+```
+
+## Running the Frontend
+
+```bash
+cd frontend
+
+# Install dependencies (first time only)
+npm install
+
+# Start development server
+npm run dev
+
+# Access at http://localhost:3000
+# API calls are proxied to backend at http://localhost:5000
 ```
 
 ## Running Tests
