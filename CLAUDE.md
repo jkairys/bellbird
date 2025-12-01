@@ -69,7 +69,11 @@ bellweaver/
 │   │   ├── api/                 # Flask REST API
 │   │   │   ├── routes.py        # Flask blueprint routes
 │   │   │   └── schemas.py       # Request/response validation
-│   │   ├── cli.py               # [TODO] Command-line interface
+│   │   ├── cli/                 # Command-line interface
+│   │   │   ├── main.py          # Main CLI app and entry point
+│   │   │   └── commands/        # CLI command modules
+│   │   │       ├── mock.py      # Mock data management
+│   │   │       └── compass.py   # Compass sync commands
 │   │   └── app.py               # [TODO] Flask application factory
 │   ├── tests/                    # Unit & integration tests
 │   ├── data/                     # Runtime data directory (gitignored)
@@ -195,11 +199,22 @@ For detailed information, see:
    - Claude API integration
    - Not yet integrated into pipeline
 
+7. **CLI Interface** (`backend/bellweaver/cli/`)
+   - Typer-based command-line interface
+   - `main.py`: Main CLI application entry point
+   - `commands/mock.py`: Mock data management commands
+   - `commands/compass.py`: Compass sync commands
+     - **sync**: Syncs calendar events from Compass to database
+       - Creates Batch records to track sync operations
+       - Fetches events for current calendar year or custom date range
+       - Stores raw API responses in ApiPayload table
+       - Usage: `poetry run bellweaver compass sync [--days N] [--limit N]`
+   - All 75 tests passing
+
 ### What's Not Built ⏳
 
 - Flask API routes
 - Web UI
-- CLI interface
 - End-to-end pipeline integration
 
 ## References & Resources
