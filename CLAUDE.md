@@ -23,7 +23,8 @@ This file documents key information about the Bellweaver project to help Claude 
 - When you are done
   - run tests and fix if failing
   - update documentation
-  - push the branch to the remote and let me review and merge it
+  - push the branch to the remote
+  - create a pull request using the `gh` cli and let me review and merge it
 
 ## Tech Stack
 
