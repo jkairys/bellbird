@@ -44,13 +44,11 @@ jobs:
         run: poetry install --with dev --no-interaction
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=bellweaver --cov-report=xml --cov-report=term
+        run: poetry run pytest --cov=bellweaver --cov-report=xml --cov-report=term --ignore=tests/test_compass_client_real.py
         env:
-          # Use real secrets if available, otherwise integration tests will skip
-          COMPASS_USERNAME: ${{ secrets.COMPASS_USERNAME }}
-          COMPASS_PASSWORD: ${{ secrets.COMPASS_PASSWORD }}
-          COMPASS_BASE_URL: ${{ secrets.COMPASS_BASE_URL }}
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY || 'test_key' }}
+          # Skip integration tests that require real Compass authentication
+          # These tests may fail in CI due to IP restrictions or rate limiting
+          CLAUDE_API_KEY: test_key
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
