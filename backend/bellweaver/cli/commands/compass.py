@@ -5,9 +5,10 @@ CLI commands for managing Compass data synchronization.
 import os
 import json
 import typer
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 from dotenv import load_dotenv
+from sqlalchemy.dialects.sqlite import insert
 
 from bellweaver.adapters.compass import CompassClient
 from bellweaver.db.database import SessionLocal, init_db
@@ -35,6 +36,12 @@ def sync_calendar_events(
         "--limit",
         "-l",
         help="Maximum number of events to fetch",
+    ),
+    incremental: bool = typer.Option(
+        False,
+        "--incremental",
+        "-i",
+        help="Only fetch events from the last sync forward (watermarking)",
     ),
 ):
     """
@@ -77,26 +84,6 @@ def sync_calendar_events(
     if not base_url.startswith(("http://", "https://")):
         base_url = f"https://{base_url}"
 
-    # Calculate date range
-    if days is not None:
-        # Use days from now
-        from datetime import timedelta
-
-        start_date = datetime.now()
-        end_date = start_date + timedelta(days=days)
-    else:
-        # Use current calendar year
-        current_year = datetime.now().year
-        start_date = datetime(current_year, 1, 1)
-        end_date = datetime(current_year, 12, 31)
-
-    start_date_str = start_date.strftime("%Y-%m-%d")
-    end_date_str = end_date.strftime("%Y-%m-%d")
-
-    typer.echo(f"  Date range: {start_date_str} to {end_date_str}")
-    typer.echo(f"  Limit: {limit} events")
-    typer.echo("")
-
     try:
         # Initialize database
         init_db()
@@ -105,6 +92,37 @@ def sync_calendar_events(
         db = SessionLocal()
 
         try:
+            # Calculate date range (with incremental sync support)
+            if incremental:
+                # Incremental mode: only fetch events from today forward
+                # This is efficient for daily syncs where you just want to catch new upcoming events
+                # The upsert logic prevents duplicates
+                start_date = datetime.now()
+
+                if days is not None:
+                    # If --days is specified with --incremental, use it
+                    end_date = start_date + timedelta(days=days)
+                else:
+                    # Default to end of next year
+                    end_date = datetime(datetime.now().year + 1, 12, 31)
+
+                typer.echo("  Incremental sync mode enabled (fetching future events only)")
+            elif days is not None:
+                # Use days from now
+                start_date = datetime.now()
+                end_date = start_date + timedelta(days=days)
+            else:
+                # Use current calendar year
+                current_year = datetime.now().year
+                start_date = datetime(current_year, 1, 1)
+                end_date = datetime(current_year, 12, 31)
+
+            start_date_str = start_date.strftime("%Y-%m-%d")
+            end_date_str = end_date.strftime("%Y-%m-%d")
+
+            typer.echo(f"  Date range: {start_date_str} to {end_date_str}")
+            typer.echo(f"  Limit: {limit} events")
+            typer.echo("")
             # Authenticate with Compass
             typer.echo("  Authenticating with Compass...")
             client = CompassClient(base_url, username, password)
@@ -130,14 +148,31 @@ def sync_calendar_events(
 
             typer.secho("  ✓ Fetched user details", fg=typer.colors.GREEN)
 
-            # Store user details as API payload
-            user_payload = ApiPayload(
+            # Store user details as API payload using upsert logic
+            # For user details, use userId as the external_id
+            user_external_id = str(user_details.get("userId", "unknown"))
+
+            stmt = insert(ApiPayload).values(
                 adapter_id="compass",
                 method_name="get_user_details",
                 batch_id=user_batch.id,
+                external_id=user_external_id,
                 payload=user_details,
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
             )
-            db.add(user_payload)
+
+            # On conflict, update the payload, batch_id, and updated_at
+            stmt = stmt.on_conflict_do_update(
+                index_elements=['adapter_id', 'method_name', 'external_id'],
+                set_={
+                    'payload': stmt.excluded.payload,
+                    'batch_id': stmt.excluded.batch_id,
+                    'updated_at': datetime.now(timezone.utc),
+                }
+            )
+
+            db.execute(stmt)
             db.commit()
 
             typer.secho("  ✓ Stored user details", fg=typer.colors.GREEN)
@@ -170,18 +205,60 @@ def sync_calendar_events(
 
             typer.secho(f"  ✓ Fetched {len(events)} events", fg=typer.colors.GREEN)
 
-            # Store events as API payloads
+            # Store events as API payloads using upsert logic
+            inserted_count = 0
+            updated_count = 0
+
+            # First, get all existing external_ids to track inserts vs updates
+            existing_external_ids = set()
+            existing_payloads = (
+                db.query(ApiPayload.external_id)
+                .filter_by(adapter_id="compass", method_name="get_calendar_events")
+                .all()
+            )
+            existing_external_ids = {row[0] for row in existing_payloads}
+
             for event in events:
-                payload = ApiPayload(
+                # Generate external_id from the event payload
+                external_id = ApiPayload.generate_external_id(event, adapter_id="compass")
+
+                # Track whether this is an update or insert
+                is_update = external_id in existing_external_ids
+
+                # Use SQLite's INSERT OR REPLACE (upsert)
+                stmt = insert(ApiPayload).values(
                     adapter_id="compass",
                     method_name="get_calendar_events",
                     batch_id=events_batch.id,
+                    external_id=external_id,
                     payload=event,
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
-                db.add(payload)
+
+                # On conflict, update the payload, batch_id, and updated_at
+                # but preserve the original created_at
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=['adapter_id', 'method_name', 'external_id'],
+                    set_={
+                        'payload': stmt.excluded.payload,
+                        'batch_id': stmt.excluded.batch_id,
+                        'updated_at': datetime.now(timezone.utc),
+                    }
+                )
+
+                db.execute(stmt)
+
+                if is_update:
+                    updated_count += 1
+                else:
+                    inserted_count += 1
 
             db.commit()
-            typer.secho(f"  ✓ Stored {len(events)} events", fg=typer.colors.GREEN)
+            typer.secho(
+                f"  ✓ Stored {len(events)} events ({inserted_count} new, {updated_count} updated)",
+                fg=typer.colors.GREEN,
+            )
             typer.echo(f"  Events Batch ID: {events_batch.id}")
 
             # Close client connection
@@ -194,9 +271,13 @@ def sync_calendar_events(
             typer.echo("Summary:")
             typer.echo(f"  User details stored: 1")
             typer.echo(f"  User batch ID: {user_batch.id}")
-            typer.echo(f"  Calendar events stored: {len(events)}")
+            typer.echo(f"  Calendar events fetched: {len(events)}")
+            typer.echo(f"    - New events: {inserted_count}")
+            typer.echo(f"    - Updated events: {updated_count}")
             typer.echo(f"  Events batch ID: {events_batch.id}")
             typer.echo(f"  Date range: {start_date_str} to {end_date_str}")
+            if incremental:
+                typer.echo(f"  Sync mode: Incremental")
 
         finally:
             db.close()

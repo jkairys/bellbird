@@ -9,10 +9,11 @@ Models:
 """
 
 import uuid
+import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.sqlite import JSON as SQLiteJSON
 from sqlalchemy.orm import relationship
 
@@ -75,16 +76,29 @@ class ApiPayload(Base):
 
     Stores raw API responses as JSON blobs to handle schema changes gracefully.
     Records are grouped by batch_id for related API calls.
+
+    Uses a unique constraint on (adapter_id, method_name, external_id) to prevent
+    duplicate storage of the same event across multiple syncs.
     """
 
     __tablename__ = "api_payloads"
+    __table_args__ = (
+        UniqueConstraint('adapter_id', 'method_name', 'external_id', name='uix_api_payload_external'),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     adapter_id = Column(String(50), nullable=False, index=True)
     method_name = Column(String(100), nullable=False, index=True)
     batch_id = Column(String(36), ForeignKey("batches.id"), nullable=False, index=True)
+    external_id = Column(String(255), nullable=False, index=True)  # Unique identifier from source system
     payload = Column(SQLiteJSON, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
     # Relationship to Batch
     batch = relationship("Batch", back_populates="payloads")
@@ -103,6 +117,39 @@ class ApiPayload(Base):
             Parsed JSON payload
         """
         return self.payload if isinstance(self.payload, dict) else {}
+
+    @staticmethod
+    def generate_external_id(payload: Dict[str, Any], adapter_id: str = "compass") -> str:
+        """
+        Generate a unique external ID from a payload.
+
+        For Compass events, uses the 'instanceId' field if available,
+        otherwise falls back to a hash of key identifying fields.
+
+        Args:
+            payload: Raw API payload dictionary
+            adapter_id: Adapter identifier (defaults to "compass")
+
+        Returns:
+            Unique external identifier string
+        """
+        if adapter_id == "compass":
+            # Compass events have instanceId which is unique per event instance
+            instance_id = payload.get("instanceId")
+            if instance_id:
+                return str(instance_id)
+
+            # Fallback: create hash from identifying fields
+            activity_id = payload.get("activityId", "")
+            start = payload.get("start", "")
+            guid = payload.get("guid", "")
+
+            hash_input = f"{activity_id}:{start}:{guid}"
+            return hashlib.sha256(hash_input.encode()).hexdigest()[:32]
+
+        # Generic fallback for other adapters
+        payload_str = str(sorted(payload.items()))
+        return hashlib.sha256(payload_str.encode()).hexdigest()[:32]
 
 
 class Event(Base):
