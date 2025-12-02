@@ -98,7 +98,13 @@ def sync_calendar_events(
                 # This is efficient for daily syncs where you just want to catch new upcoming events
                 # The upsert logic prevents duplicates
                 start_date = datetime.now()
-                end_date = datetime(datetime.now().year + 1, 12, 31)  # End of next year
+
+                if days is not None:
+                    # If --days is specified with --incremental, use it
+                    end_date = start_date + timedelta(days=days)
+                else:
+                    # Default to end of next year
+                    end_date = datetime(datetime.now().year + 1, 12, 31)
 
                 typer.echo("  Incremental sync mode enabled (fetching future events only)")
             elif days is not None:
