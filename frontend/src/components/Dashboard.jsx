@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUserDetails, getEvents } from '../services/api';
+import Calendar from './Calendar';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -47,16 +48,6 @@ function Dashboard() {
     );
   }
 
-  // Filter to show only upcoming events (from today forward)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const upcomingEvents = events?.events?.filter(event => {
-    const eventDate = new Date(event.start);
-    return eventDate >= today;
-  }) || [];
-
-  const displayEvents = upcomingEvents.slice(0, 10);
   const userName = user?.user?.user_preferred_name || user?.user?.user_first_name || 'User';
   const userFullName = user?.user?.user_full_name;
 
@@ -76,76 +67,7 @@ function Dashboard() {
       </header>
 
       <section className="events-section">
-        <h2>Upcoming Events</h2>
-        {user?.batch && (
-          <p className="batch-info">
-            Last synced: {new Date(user.batch.created_at).toLocaleString()}
-          </p>
-        )}
-
-        {displayEvents.length === 0 ? (
-          <p className="no-events">
-            No upcoming events found.
-            {events?.hint && <span className="hint"> {events.hint}</span>}
-          </p>
-        ) : (
-          <div className="events-list">
-            {displayEvents.map((event) => (
-              <div key={event.id} className="event-card">
-                <div className="event-header">
-                  <h3>{event.title}</h3>
-                  {event.all_day ? (
-                    <span className="event-badge all-day">All Day</span>
-                  ) : (
-                    <span className="event-time">
-                      {new Date(event.start).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  )}
-                </div>
-
-                <div className="event-details">
-                  <p className="event-date">
-                    {new Date(event.start).toLocaleDateString([], {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-
-                  {event.description && event.description.trim() && (
-                    <p className="event-description">{event.description}</p>
-                  )}
-
-                  {event.location && (
-                    <p className="event-location">📍 {event.location}</p>
-                  )}
-
-                  {event.status && (
-                    <p className="event-status">
-                      Status: {event.status.replace('Event', '')}
-                    </p>
-                  )}
-
-                  {event.attendees && event.attendees.length > 0 && (
-                    <p className="event-attendees">
-                      👥 {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {upcomingEvents.length > 10 && (
-          <p className="showing-count">
-            Showing 10 of {upcomingEvents.length} upcoming events
-          </p>
-        )}
+        <Calendar events={events} />
 
         {events?.event_count > 0 && (
           <p className="total-count">
