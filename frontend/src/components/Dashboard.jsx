@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getUserDetails, getEvents } from '../services/api';
 import Calendar from './Calendar';
+import ThisWeekView from './ThisWeekView';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -8,6 +9,7 @@ function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'thisWeek'
 
   useEffect(() => {
     async function fetchData() {
@@ -67,7 +69,26 @@ function Dashboard() {
       </header>
 
       <section className="events-section">
-        <Calendar events={events} />
+        <div className="view-controls">
+          <button
+            className={`view-button ${viewMode === 'calendar' ? 'active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+          >
+            📅 Calendar
+          </button>
+          <button
+            className={`view-button ${viewMode === 'thisWeek' ? 'active' : ''}`}
+            onClick={() => setViewMode('thisWeek')}
+          >
+            📋 This Week
+          </button>
+        </div>
+
+        {viewMode === 'calendar' ? (
+          <Calendar events={events} />
+        ) : (
+          <ThisWeekView events={events} />
+        )}
 
         {events?.event_count > 0 && (
           <p className="total-count">
@@ -80,3 +101,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
