@@ -1,10 +1,35 @@
+import { useState } from 'react'
 import Dashboard from './components/Dashboard'
+import FamilyManagement from './pages/FamilyManagement'
 import './App.css'
 
 function App() {
+  const [currentPage, setCurrentPage] = useState('dashboard')
+
   return (
     <div className="app">
-      <Dashboard />
+      <nav className="app-nav">
+        <div className="nav-brand">Bellweaver</div>
+        <div className="nav-links">
+          <button
+            className={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setCurrentPage('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            className={`nav-link ${currentPage === 'family' ? 'active' : ''}`}
+            onClick={() => setCurrentPage('family')}
+          >
+            Family Management
+          </button>
+        </div>
+      </nav>
+
+      <main className="app-content">
+        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'family' && <FamilyManagement />}
+      </main>
     </div>
   )
 }
