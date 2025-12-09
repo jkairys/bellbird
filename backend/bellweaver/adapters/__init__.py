@@ -1,6 +1,7 @@
 """Adapters for connecting to external calendar sources."""
 
-from .compass import CompassClient
-from .compass_mock import CompassMockClient
+# Compass adapters have been moved to the compass package
+# Import from compass package instead:
+#   from compass import CompassClient, CompassMockClient
 
-__all__ = ["CompassClient", "CompassMockClient"]
+__all__ = []

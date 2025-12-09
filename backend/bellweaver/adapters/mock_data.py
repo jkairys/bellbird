@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Tuple
 
 from dotenv import load_dotenv
 
-from .compass import CompassClient
+from compass import CompassClient
 
 
 def collect_compass_data(

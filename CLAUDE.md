@@ -66,33 +66,46 @@ osascript -e 'display notification "Waiting for your input" with title "Claude C
 
 ```
 bellweaver/
-├── backend/                      # Backend Python application
-│   ├── bellweaver/                      # Main application code
-│   │   ├── adapters/            # External API clients
-│   │   │   ├── compass.py       # Real Compass API (HTTP-based, returns raw dicts)
-│   │   │   └── compass_mock.py  # Synthetic data for testing
-│   │   ├── parsers/             # Data validation layer
-│   │   │   └── compass.py       # Transforms raw dicts → validated Pydantic models
+├── compass/                     # Standalone Compass API package
+│   ├── compass/                 # Compass package source
+│   │   ├── __init__.py          # Package exports
+│   │   ├── client.py            # Real Compass API client (HTTP-based)
+│   │   ├── mock_client.py       # Mock client for testing
+│   │   ├── models.py            # Pydantic models (CompassEvent, CompassUser)
+│   │   └── parser.py            # Parser for validating API responses
+│   ├── tests/                   # Compass package tests
+│   │   ├── test_client.py       # Client tests
+│   │   ├── test_models.py       # Model validation tests
+│   │   └── test_parser.py       # Parser tests
+│   ├── pyproject.toml           # Compass package configuration
+│   └── README.md                # Compass package documentation
+│
+├── backend/                     # Backend Python application
+│   ├── bellweaver/              # Main application code
+│   │   ├── adapters/            # External API clients (non-Compass)
+│   │   │   └── mock_data.py     # Mock data collection utilities
+│   │   ├── mappers/             # Transform platform data to generic models
+│   │   │   └── compass.py       # CompassEvent → Event mapper
 │   │   ├── db/                  # Database layer
 │   │   │   ├── database.py      # SQLAlchemy session, connection, schema
-│   │   │   ├── models.py        # ORM models (Credential, ApiPayload)
+│   │   │   ├── models.py        # ORM models (Credential, ApiPayload, Event)
 │   │   │   └── credentials.py   # Encrypted credential storage/retrieval
 │   │   ├── models/              # Pydantic/dataclass models
-│   │   │   ├── compass.py       # Compass API data models (CompassEvent, CompassUser)
+│   │   │   ├── event.py         # Generic Event model
 │   │   │   └── config.py        # User configuration models
 │   │   ├── api/                 # Flask REST API
 │   │   │   ├── __init__.py      # Flask application factory
-│   │   │   └── routes.py        # Domain-specific route handlers (user_bp, etc.)
+│   │   │   └── routes.py        # Domain-specific route handlers
 │   │   └── cli/                 # Command-line interface
 │   │       ├── main.py          # Main CLI app and entry point
 │   │       └── commands/        # CLI command modules
 │   │           ├── mock.py      # Mock data management
 │   │           ├── compass.py   # Compass sync commands
 │   │           └── api.py       # API server commands
-│   ├── tests/                    # Unit & integration tests
-│   ├── data/                     # Runtime data directory (gitignored)
-│   │   └── bellweaver.db         # SQLite database created at runtime
-│   ├── pyproject.toml           # Poetry configuration + tool settings
+│   ├── tests/                   # Unit & integration tests
+│   ├── data/                    # Runtime data directory (gitignored)
+│   │   └── bellweaver.db        # SQLite database created at runtime
+│   ├── pyproject.toml           # Poetry configuration (depends on compass package)
 │   └── poetry.lock              # Locked dependencies
 │
 ├── frontend/                    # Frontend React application
@@ -110,11 +123,11 @@ bellweaver/
 │   ├── package.json             # npm dependencies
 │   └── README.md                # Frontend setup instructions
 │
-├── docs/                         # Project documentation
-│   ├── index.md                  # Documentation index & current status
+├── docs/                        # Project documentation
+│   ├── index.md                 # Documentation index & current status
 │   ├── quick-start.md           # 5-minute setup guide
 │   └── architecture.md          # System design & technical decisions
-├── .env.example                 # Environment variables template (for Docker and local)
+├── .env.example                 # Environment variables template
 ├── .gitignore                   # Git ignore rules
 └── README.md                    # Main project README
 ```
@@ -217,30 +230,46 @@ For detailed information, see:
 
 ### What's Working ✅
 
-1. **Compass HTTP Client** (`backend/bellweaver/adapters/compass.py`)
-   - Direct HTTP authentication (no browser automation)
-   - Fast performance (~1 second)
-   - Returns raw dict responses
-   - Integration tests passing
+1. **Compass API Package** (`compass/`)
+   - **Standalone Python package** - Independent of bellweaver, can be reused in other projects
+   - **CompassClient** (`compass/client.py`)
+     - Direct HTTP authentication (no browser automation)
+     - Fast performance (~1 second)
+     - Returns raw dict responses
+     - Integration tests passing
+   - **CompassMockClient** (`compass/mock_client.py`)
+     - Realistic test data
+     - Same interface as real client
+   - **CompassParser** (`compass/parser.py`)
+     - Generic parser using Python TypeVar
+     - Single `parse()` method works with any Pydantic model
+     - Validates raw API responses into type-safe models
+     - Comprehensive error handling
+     - Safe parsing with partial success support
+     - Full test coverage
+   - **Pydantic Models** (`compass/models.py`)
+     - CompassEvent model with all fields
+     - CompassUser model with all fields
+     - CalendarEventLocation and CalendarEventManager models
+     - Proper field aliases (camelCase → snake_case)
+   - **Package Configuration**
+     - Independent pyproject.toml with minimal dependencies
+     - README.md with usage examples
+     - Comprehensive test suite
 
-2. **Mock Client** (`backend/bellweaver/adapters/compass_mock.py`)
-   - Realistic test data
-   - Same interface as real client
+2. **Compass Integration** (`backend/bellweaver/`)
+   - **Compass Mapper** (`mappers/compass.py`)
+     - Transforms CompassEvent → generic Event model
+     - Handles location extraction (string vs array)
+     - Maps running status codes to event statuses
+     - Full test coverage (8 tests passing)
+   - **Compass CLI Commands** (`cli/commands/compass.py`)
+     - `sync`: Fetches and stores Compass data
+     - `process`: Processes stored data into normalized events
+     - Incremental sync support with watermarking
+     - Upsert logic to prevent duplicates
 
-3. **Compass Parser** (`backend/bellweaver/parsers/compass.py`)
-   - Generic parser using Python TypeVar
-   - Single `parse()` method works with any Pydantic model
-   - Validates raw API responses into type-safe models
-   - Comprehensive error handling
-   - Safe parsing with partial success support
-   - Full test coverage (22 tests passing)
-
-4. **Pydantic Models** (`backend/bellweaver/models/compass.py`)
-   - CompassEvent model with all fields
-   - CompassUser model with all fields
-   - Proper field aliases (camelCase → snake_case)
-
-5. **Database Layer** (`backend/bellweaver/db/`)
+3. **Database Layer** (`backend/bellweaver/db/`)
    - SQLAlchemy 2.0 setup with proper DeclarativeBase
    - `database.py`: Engine, session management, init functions
    - `models.py`: ORM models for data persistence
@@ -261,31 +290,23 @@ For detailed information, see:
    - `credentials.py`: Credential encryption/decryption using Fernet
    - Foreign key constraints enabled in SQLite
    - Full test coverage (26 tests for database models)
-   - All 75 tests passing
+   - All 58 tests passing
 
-6. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
+4. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
    - Claude API integration
    - Not yet integrated into pipeline
 
-7. **CLI Interface** (`backend/bellweaver/cli/`)
+5. **CLI Interface** (`backend/bellweaver/cli/`)
    - Typer-based command-line interface
    - `main.py`: Main CLI application entry point
    - `commands/mock.py`: Mock data management commands
-   - `commands/compass.py`: Compass sync commands
-     - **sync**: Syncs user details and calendar events from Compass to database
-       - Creates separate Batch records to track each sync operation
-       - Fetches user details for the authenticated user
-       - Fetches calendar events for current calendar year or custom date range
-       - Stores raw API responses in ApiPayload table
-       - Usage: `poetry run bellweaver compass sync [--days N] [--limit N]`
    - `commands/api.py`: API server management commands
      - **serve**: Starts the Flask API server
-       - Supports custom host and port configuration
-       - Debug mode with auto-reloader available
-       - Usage: `poetry run bellweaver api serve [--host HOST] [--port PORT] [--debug]`
-   - All 75 tests passing
+     - Supports custom host and port configuration
+     - Debug mode with auto-reloader available
+     - Usage: `poetry run bellweaver api serve [--host HOST] [--port PORT] [--debug]`
 
-8. **Flask API** (`backend/bellweaver/api/`)
+6. **Flask API** (`backend/bellweaver/api/`)
    - Flask application factory pattern in modular structure
    - `__init__.py`: Application factory (create_app)
    - `routes.py`: Domain-specific route blueprints
@@ -304,7 +325,7 @@ For detailed information, see:
      - **Legacy**: `poetry run python -m bellweaver.app` (deprecated)
    - Note: Backward compatibility maintained via `bellweaver/app.py`
 
-9. **React Frontend** (`frontend/`)
+7. **React Frontend** (`frontend/`)
    - Vite-based React application
    - Dashboard component displaying user details and events
    - API service layer with error handling
@@ -318,7 +339,7 @@ For detailed information, see:
    - API proxy configured to Flask backend (port 5000)
    - All 116 npm packages installed successfully
 
-10. **Docker Deployment**
+8. **Docker Deployment**
     - Multi-stage Dockerfile combining frontend and backend
     - `Dockerfile`: Builds React frontend in stage 1, copies into Flask static dir in stage 2
     - `docker-compose.yml`: Orchestration with volume mounts

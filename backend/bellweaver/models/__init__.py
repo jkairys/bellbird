@@ -1,6 +1,6 @@
 """Data models for Bellweaver."""
 
-from bellweaver.models.compass import (
+from compass import (
     CalendarEventLocation,
     CalendarEventManager,
     CompassEvent,

@@ -10,12 +10,10 @@ from typing import Optional
 from dotenv import load_dotenv
 from sqlalchemy.dialects.sqlite import insert
 
-from bellweaver.adapters.compass import CompassClient
+from compass import CompassClient, CompassEvent, CompassParser
 from bellweaver.db.database import SessionLocal, init_db
 from bellweaver.db.models import Batch, ApiPayload, Event
-from bellweaver.models.compass import CompassEvent
 from bellweaver.mappers.compass import compass_event_to_event
-from bellweaver.parsers.compass import CompassParser
 
 # Load environment variables from .env file
 load_dotenv()

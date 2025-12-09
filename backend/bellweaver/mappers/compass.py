@@ -4,7 +4,7 @@ This module handles the transformation of CompassEvent objects (from the Compass
 into normalized Event objects that can be used consistently across the application.
 """
 
-from bellweaver.models.compass import CompassEvent
+from compass import CompassEvent
 from bellweaver.models.event import Event
 
 

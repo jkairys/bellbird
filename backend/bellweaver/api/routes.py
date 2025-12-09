@@ -8,10 +8,9 @@ from flask import Flask, jsonify, Blueprint
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from compass import CompassUser, CompassEvent, CompassParser
 from bellweaver.db.database import get_db
 from bellweaver.db.models import ApiPayload, Batch, Event
-from bellweaver.models.compass import CompassUser, CompassEvent
-from bellweaver.parsers.compass import CompassParser
 
 # Create blueprint for user-related routes
 user_bp = Blueprint("users", __name__, url_prefix="/api/user")

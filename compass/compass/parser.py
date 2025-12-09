@@ -8,9 +8,7 @@ validated Pydantic models. It separates concerns:
 - Application code works with type-safe, validated models
 
 Example usage:
-    >>> from bellweaver.adapters.compass import CompassClient
-    >>> from bellweaver.parsers.compass import CompassParser
-    >>> from bellweaver.models.compass import CompassEvent, CompassUser
+    >>> from compass import CompassClient, CompassParser, CompassEvent, CompassUser
     >>>
     >>> client = CompassClient(base_url, username, password)
     >>> client.login()
@@ -84,7 +82,7 @@ class CompassParser:
             CompassParseError: If validation fails
 
         Example:
-            >>> from bellweaver.models.compass import CompassEvent, CompassUser
+            >>> from compass import CompassEvent, CompassUser, CompassParser
             >>> # Parse single object
             >>> event = CompassParser.parse(CompassEvent, raw_event_dict)
             >>> # Parse list of objects

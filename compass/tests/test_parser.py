@@ -7,8 +7,7 @@ Tests the parsing layer that transforms raw API responses into validated Pydanti
 from datetime import datetime
 
 import pytest
-from bellweaver.parsers.compass import CompassParser, CompassParseError
-from bellweaver.models.compass import CompassEvent, CompassUser
+from compass import CompassParser, CompassParseError, CompassEvent, CompassUser
 
 
 class TestCompassParserEvent:

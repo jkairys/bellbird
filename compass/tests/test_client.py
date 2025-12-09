@@ -16,7 +16,7 @@ import os
 from datetime import datetime, timedelta
 
 import pytest
-from bellweaver.adapters.compass import CompassClient
+from compass import CompassClient
 
 # Base URL for Seaford North Primary School
 COMPASS_BASE_URL = "https://seaford-northps-vic.compass.education"
