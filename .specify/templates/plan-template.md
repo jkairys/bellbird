@@ -31,15 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Verify compliance with `.specify/memory/constitution.md` principles:
-
-- [ ] **Separation of Concerns**: If feature involves external APIs, does it follow Adapter → Parser → Application pattern?
-- [ ] **Test-First**: Are tests written before implementation? Do they encode acceptance criteria?
-- [ ] **Secure by Default**: Are credentials encrypted? Is sensitive data protected?
-- [ ] **Local-First MVP**: Does design avoid premature cloud/scaling features?
-- [ ] **Simplicity & Pragmatism**: Are abstractions justified? Any prohibited complexity used?
-
-**Violations Requiring Justification**: [List any principle violations and complete Complexity Tracking table below, OR write "None"]
+[Gates determined based on constitution file]
 
 ## Project Structure
 

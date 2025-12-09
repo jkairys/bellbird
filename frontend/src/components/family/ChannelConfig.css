@@ -1,0 +1,67 @@
+/* ChannelConfig component styles */
+.channel-config {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-top: 20px;
+}
+
+.channel-config h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 1.25rem;
+}
+
+.channel-config .form-group {
+  margin-bottom: 15px;
+}
+
+.channel-config .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #333;
+}
+
+.channel-config .form-group input,
+.channel-config .form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.channel-config .form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.channel-config .actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.channel-config .btn {
+  padding: 0.75rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.channel-config .btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.channel-config .btn-delete {
+  background-color: #e74c3c;
+  color: white;
+}

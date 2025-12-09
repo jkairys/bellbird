@@ -235,9 +235,12 @@ For detailed information, see:
    - Safe parsing with partial success support
    - Full test coverage (22 tests passing)
 
-4. **Pydantic Models** (`backend/bellweaver/models/compass.py`)
+4. **Pydantic Models** (`backend/bellweaver/models/compass.py`, `backend/bellweaver/models/family.py`)
    - CompassEvent model with all fields
    - CompassUser model with all fields
+   - `Child`, `Organisation`, `CommunicationChannel` models for family management
+   - `ChildCreate`, `ChildUpdate`, `OrganisationCreate`, `OrganisationUpdate`, `ChannelCreate`, `ChannelUpdate` for API request validation
+   - `ChildDetail`, `OrganisationDetail` for API responses including relationships
    - Proper field aliases (camelCase → snake_case)
 
 5. **Database Layer** (`backend/bellweaver/db/`)
@@ -245,23 +248,15 @@ For detailed information, see:
    - `database.py`: Engine, session management, init functions
    - `models.py`: ORM models for data persistence
      - **Batch**: Adapter method invocation tracking
-       - Stores metadata about each adapter method call
-       - Tracks adapter_id, method_name, and parameters (as JSON)
-       - Acts as foreign key for related ApiPayload records
-       - Supports cascade delete (deleting batch removes all payloads)
-       - Auto-generated UUID primary keys
      - **ApiPayload**: Stores raw API responses as JSON with batch tracking
-       - Flexible schema to handle API changes gracefully
-       - Foreign key relationship to Batch model
-       - Indexed by adapter_id, method_name, batch_id, created_at
-       - Auto-generated UUID primary keys
      - **Credential**: Encrypted credential storage
-       - Primary key on source (compass, classdojo, etc.)
-       - Timestamps for created_at and updated_at
+     - **Child**: Child profile management with many-to-many relationship to Organisation
+     - **Organisation**: Organisation management with unique name constraint, one-to-many relationship to CommunicationChannel, and many-to-many relationship to Child
+     - **ChildOrganisation**: Association table for Child-Organisation relationship with cascade delete
+     - **CommunicationChannel**: Channel configuration with encrypted credential linking and sync status
    - `credentials.py`: Credential encryption/decryption using Fernet
    - Foreign key constraints enabled in SQLite
    - Full test coverage (26 tests for database models)
-   - All 75 tests passing
 
 6. **LLM Filter** (`backend/bellweaver/filtering/llm_filter.py`)
    - Claude API integration
@@ -269,21 +264,10 @@ For detailed information, see:
 
 7. **CLI Interface** (`backend/bellweaver/cli/`)
    - Typer-based command-line interface
-   - `main.py`: Main CLI application entry point
+   - `main.py`: Main CLI app and entry point
    - `commands/mock.py`: Mock data management commands
    - `commands/compass.py`: Compass sync commands
-     - **sync**: Syncs user details and calendar events from Compass to database
-       - Creates separate Batch records to track each sync operation
-       - Fetches user details for the authenticated user
-       - Fetches calendar events for current calendar year or custom date range
-       - Stores raw API responses in ApiPayload table
-       - Usage: `poetry run bellweaver compass sync [--days N] [--limit N]`
    - `commands/api.py`: API server management commands
-     - **serve**: Starts the Flask API server
-       - Supports custom host and port configuration
-       - Debug mode with auto-reloader available
-       - Usage: `poetry run bellweaver api serve [--host HOST] [--port PORT] [--debug]`
-   - All 75 tests passing
 
 8. **Flask API** (`backend/bellweaver/api/`)
    - Flask application factory pattern in modular structure
@@ -292,31 +276,45 @@ For detailed information, see:
    - REST API endpoints for accessing aggregated data
    - Routes implemented:
      - **GET /user**: Returns latest user details from Compass
-       - Fetches most recent get_user_details batch
-       - Parses payloads using CompassUser Pydantic model
-       - Returns parsed JSON with batch metadata
      - **GET /events**: Returns calendar events from Compass
-       - Fetches most recent get_events batch
-       - Parses payloads using CompassEvent Pydantic model
-       - Returns parsed JSON with batch metadata and event list
-   - Usage:
-     - **Recommended**: `poetry run bellweaver api serve [--debug]`
-     - **Legacy**: `poetry run python -m bellweaver.app` (deprecated)
-   - Note: Backward compatibility maintained via `bellweaver/app.py`
+     - **POST /api/children**: Create child profile
+     - **GET /api/children**: List all children (with organisations)
+     - **GET /api/children/:id**: Get child profile by ID (with organisations)
+     - **PUT /api/children/:id**: Update child profile
+     - **DELETE /api/children/:id**: Delete child profile
+     - **POST /api/organisations**: Create organisation
+     - **GET /api/organisations**: List all organisations (with children & channels, optional type filter)
+     - **GET /api/organisations/:id**: Get organisation by ID (with children & channels)
+     - **PUT /api/organisations/:id**: Update organisation (with unique name enforcement)
+     - **DELETE /api/organisations/:id**: Delete organisation (prevents if children associated, cascades channels)
+     - **POST /api/children/:id/organisations**: Associate child with organisation
+     - **GET /api/children/:id/organisations**: List organisations for a child
+     - **DELETE /api/children/:child_id/organisations/:org_id**: Remove child-organisation association
+     - **POST /api/organisations/:id/channels**: Create communication channel (with Compass auth validation & credential encryption)
+     - **GET /api/organisations/:id/channels**: List channels for an organisation
+     - **GET /api/channels/:id**: Get channel details
+     - **PUT /api/channels/:id**: Update channel (re-validates credentials if provided)
+     - **DELETE /api/channels/:id**: Delete channel
+   - Comprehensive integration tests for all family API endpoints passing.
 
 9. **React Frontend** (`frontend/`)
    - Vite-based React application
    - Dashboard component displaying user details and events
-   - API service layer with error handling
-   - Features:
-     - Displays user name and email from /user endpoint
-     - Shows first 10 upcoming calendar events from /events endpoint
-     - Responsive design with dark/light mode support
-     - Loading states and error handling
-     - Event cards with time, date, location, and attendees
-   - Development server with hot reload (port 3000)
-   - API proxy configured to Flask backend (port 5000)
-   - All 116 npm packages installed successfully
+   - API service layer (`services/familyApi.js`) with error handling, including all family management and channel operations
+   - **Family Management Page (`pages/FamilyManagement.jsx`)**:
+     - Tabbed interface for Children and Organisations
+     - Centralized state management using `FamilyContext`
+     - Toast notification system for success/error messages
+     - Loading states for API calls
+     - Basic responsive layout
+   - **Child Management Components**:
+     - `ChildList.jsx`: Displays children, edit/delete actions, shows associated organisation badges
+     - `ChildForm.jsx`: Add/Edit child form, includes section for managing child-organisation associations (add/remove)
+   - **Organisation Management Components**:
+     - `OrganisationList.jsx`: Displays organisations, edit/delete actions, type filter, "Needs Setup" indicator for channels
+     - `OrganisationForm.jsx`: Add/Edit organisation form, displays associated children, includes section for managing communication channels
+   - **Channel Configuration Component**:
+     - `ChannelConfig.jsx`: Form for adding/editing communication channels (currently Compass), handles credential input and active status.
 
 10. **Docker Deployment**
     - Multi-stage Dockerfile combining frontend and backend
@@ -330,9 +328,10 @@ For detailed information, see:
 
 ### What's Not Built ⏳
 
-- Event filtering by child/relevance
 - LLM-based event filtering integration
 - End-to-end pipeline integration
+- Automated frontend tests (deferred to post-MVP)
+- Advanced accessibility features (beyond basic semantic HTML, deferred to post-MVP)
 
 ## References & Resources
 

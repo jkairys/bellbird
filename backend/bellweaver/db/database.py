@@ -22,11 +22,26 @@ DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 print(f"Using DATABASE_URL={DATABASE_URL}")
 
 # Create engine
+# Enable foreign key constraints for SQLite
+connect_args = {}
+if "sqlite" in DATABASE_URL:
+    connect_args["check_same_thread"] = False
+
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
+    connect_args=connect_args,
     echo=os.getenv("SQL_ECHO", "false").lower() == "true",
 )
+
+# Enable foreign key constraints for SQLite (required for CASCADE DELETE)
+if "sqlite" in DATABASE_URL:
+    from sqlalchemy import event
+
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -51,6 +66,16 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def get_engine():
+    """Get the SQLAlchemy engine instance."""
+    return engine
+
+
+def get_session() -> Session:
+    """Get a new database session."""
+    return SessionLocal()
 
 
 def init_db() -> None:

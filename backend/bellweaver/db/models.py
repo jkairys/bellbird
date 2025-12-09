@@ -6,6 +6,10 @@ Models:
 - Batch: Adapter method invocation tracking
 - ApiPayload: Raw API response storage with batch tracking
 - Event: Normalized calendar event storage
+- Child: Child profile management
+- Organisation: School/daycare/sports team management
+- ChildOrganisation: Many-to-many child-organisation association
+- CommunicationChannel: Communication channel configuration
 """
 
 import uuid
@@ -13,7 +17,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.sqlite import JSON as SQLiteJSON
 from sqlalchemy.orm import relationship
 
@@ -200,3 +204,135 @@ class Event(Base):
 
     def __repr__(self) -> str:
         return f"<Event(id='{self.id}', title='{self.title}', start='{self.start}')>"
+
+
+class Child(Base):
+    """
+    Child profile.
+
+    Stores information about a child in the family, including name, date of birth,
+    gender, and interests. Associated with organisations through ChildOrganisation.
+    """
+
+    __tablename__ = "children"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    name = Column(String(200), nullable=False)
+    date_of_birth = Column(Date, nullable=False)
+    gender = Column(String(50), nullable=True)
+    interests = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Many-to-many relationship with Organisation via ChildOrganisation
+    organisations = relationship(
+        "Organisation",
+        secondary="child_organisations",
+        back_populates="children",
+    )
+
+    def __repr__(self) -> str:
+        return f"<Child(id='{self.id}', name='{self.name}', dob='{self.date_of_birth}')>"
+
+
+class Organisation(Base):
+    """
+    Organisation (school, daycare, kindergarten, sports team, etc.).
+
+    Stores information about an organisation, including name, type, address, and
+    contact information. Associated with children through ChildOrganisation and
+    has communication channels.
+    """
+
+    __tablename__ = "organisations"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    name = Column(String(200), nullable=False, unique=True)
+    type = Column(String(50), nullable=False, index=True)
+    address = Column(String(500), nullable=True)
+    contact_info = Column(SQLiteJSON, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Many-to-many relationship with Child via ChildOrganisation
+    children = relationship(
+        "Child",
+        secondary="child_organisations",
+        back_populates="organisations",
+    )
+
+    # One-to-many relationship with CommunicationChannel
+    channels = relationship(
+        "CommunicationChannel",
+        back_populates="organisation",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:
+        return f"<Organisation(id='{self.id}', name='{self.name}', type='{self.type}')>"
+
+
+class ChildOrganisation(Base):
+    """
+    Association table for Child-Organisation many-to-many relationship.
+
+    Uses composite primary key (child_id, organisation_id) to prevent duplicates.
+    Cascade delete on both foreign keys ensures cleanup when either entity is deleted.
+    """
+
+    __tablename__ = "child_organisations"
+
+    child_id = Column(String(36), ForeignKey("children.id", ondelete="CASCADE"), primary_key=True)
+    organisation_id = Column(String(36), ForeignKey("organisations.id", ondelete="CASCADE"), primary_key=True)
+
+    def __repr__(self) -> str:
+        return f"<ChildOrganisation(child_id='{self.child_id}', organisation_id='{self.organisation_id}')>"
+
+
+class CommunicationChannel(Base):
+    """
+    Communication channel configuration.
+
+    Stores configuration for communication channels (Compass, HubHello, ClassDojo, etc.)
+    associated with an organisation. Credentials are stored separately in the Credential table.
+    """
+
+    __tablename__ = "communication_channels"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    organisation_id = Column(String(36), ForeignKey("organisations.id"), nullable=False, index=True)
+    channel_type = Column(String(50), nullable=False, index=True)
+    credential_source = Column(String(50), ForeignKey("credentials.source", ondelete="SET NULL"), nullable=True)
+    config = Column(SQLiteJSON, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    last_sync_at = Column(DateTime, nullable=True)
+    last_sync_status = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Many-to-one relationship with Organisation
+    organisation = relationship("Organisation", back_populates="channels")
+
+    # Many-to-one relationship with Credential (optional)
+    credential = relationship("Credential")
+
+    def __repr__(self) -> str:
+        return (
+            f"<CommunicationChannel(id='{self.id}', type='{self.channel_type}', "
+            f"organisation_id='{self.organisation_id}')>"
+        )
