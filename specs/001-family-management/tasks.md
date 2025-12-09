@@ -23,9 +23,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create Pydantic models directory at backend/bellweaver/models/family.py
-- [ ] T002 Verify existing encrypted credential storage is functional at backend/bellweaver/db/credentials.py
-- [ ] T003 [P] Create test fixtures directory at backend/tests/fixtures/family_data.py
+- [x] T001 Create Pydantic models directory at backend/bellweaver/models/family.py
+- [x] T002 Verify existing encrypted credential storage is functional at backend/bellweaver/db/credentials.py
+- [x] T003 [P] Create test fixtures directory at backend/tests/fixtures/family_data.py
 
 ---
 
