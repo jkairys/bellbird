@@ -34,20 +34,20 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 [P] Move `backend/bellweaver/models/compass.py` to `packages/compass-client/compass_client/models.py`
-- [ ] T010 [P] Move `backend/bellweaver/parsers/compass.py` to `packages/compass-client/compass_client/parser.py`
-- [ ] T011 [P] Move `backend/bellweaver/adapters/compass.py` to `packages/compass-client/compass_client/client.py`
-- [ ] T012 [P] Move `backend/bellweaver/adapters/compass_mock.py` to `packages/compass-client/compass_client/mock_client.py`
-- [ ] T013 Create `packages/compass-client/compass_client/__init__.py` with public API exports
-- [ ] T014 Create `packages/compass-client/compass_client/exceptions.py` with CompassClientError, CompassAuthenticationError, CompassParseError
-- [ ] T015 Create `packages/compass-client/compass_client/factory.py` with create_client() factory function
-- [ ] T016 [P] Move mock data from `backend/data/mock/` to `packages/compass-client/data/mock/`
-- [ ] T017 [P] Create `packages/compass-client/data/mock/schema_version.json` with version metadata
-- [ ] T018 [P] Create `packages/compass-client/data/mock/README.md` with mock data documentation
-- [ ] T019 Update imports in compass_client package to use relative imports
-- [ ] T020 Install compass-client package locally with `poetry install` in packages/compass-client/
-- [ ] T021 Update `packages/bellweaver/pyproject.toml` to add compass-client path dependency
-- [ ] T022 Install bellweaver package with compass-client dependency using `poetry install` in packages/bellweaver/
+- [X] T009 [P] Move `backend/bellweaver/models/compass.py` to `packages/compass-client/compass_client/models.py`
+- [X] T010 [P] Move `backend/bellweaver/parsers/compass.py` to `packages/compass-client/compass_client/parser.py`
+- [X] T011 [P] Move `backend/bellweaver/adapters/compass.py` to `packages/compass-client/compass_client/client.py`
+- [X] T012 [P] Move `backend/bellweaver/adapters/compass_mock.py` to `packages/compass-client/compass_client/mock_client.py`
+- [X] T013 Create `packages/compass-client/compass_client/__init__.py` with public API exports
+- [X] T014 Create `packages/compass-client/compass_client/exceptions.py` with CompassClientError, CompassAuthenticationError, CompassParseError
+- [X] T015 Create `packages/compass-client/compass_client/factory.py` with create_client() factory function
+- [X] T016 [P] Move mock data from `backend/data/mock/` to `packages/compass-client/data/mock/`
+- [X] T017 [P] Create `packages/compass-client/data/mock/schema_version.json` with version metadata
+- [X] T018 [P] Create `packages/compass-client/data/mock/README.md` with mock data documentation
+- [X] T019 Update imports in compass_client package to use relative imports
+- [X] T020 Install compass-client package locally with `poetry install` in packages/compass-client/
+- [X] T021 Update `packages/bellweaver/pyproject.toml` to add compass-client path dependency
+- [X] T022 Install bellweaver package with compass-client dependency using `poetry install` in packages/bellweaver/
 
 **Checkpoint**: Foundation ready - compass-client package is functional, user story implementation can now begin
 
