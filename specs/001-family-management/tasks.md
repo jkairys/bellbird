@@ -35,18 +35,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Add Child ORM model to backend/bellweaver/db/models.py with UUID, name, date_of_birth, gender, interests, timestamps
-- [ ] T005 Add Organisation ORM model to backend/bellweaver/db/models.py with UUID, name (UNIQUE), type, address, contact_info (JSON), timestamps
-- [ ] T006 Add ChildOrganisation association table to backend/bellweaver/db/models.py with composite PK (child_id, organisation_id), CASCADE DELETE
-- [ ] T007 Add CommunicationChannel ORM model to backend/bellweaver/db/models.py with UUID, organisation_id (FK), channel_type, credential_source (FK), config (JSON), is_active, sync status fields, timestamps
-- [ ] T008 Add SQLAlchemy relationships for Child ↔ Organisation many-to-many in backend/bellweaver/db/models.py
-- [ ] T009 Add SQLAlchemy relationships for Organisation → CommunicationChannel one-to-many in backend/bellweaver/db/models.py
-- [ ] T010 Add database initialization code to create new tables in backend/bellweaver/db/database.py
-- [ ] T011 Create base Pydantic models in backend/bellweaver/models/family.py for ChildBase, OrganisationBase, ChannelBase
-- [ ] T012 Add validation logic to Pydantic models: date_of_birth not in future, organisation type enum, channel type enum
-- [ ] T013 [P] Create family_bp blueprint in backend/bellweaver/api/routes.py
-- [ ] T014 [P] Add error handler classes (ValidationError, ConflictError) in backend/bellweaver/api/routes.py
-- [ ] T015 [P] Register family_bp blueprint in backend/bellweaver/api/__init__.py
+- [X] T004 Add Child ORM model to backend/bellweaver/db/models.py with UUID, name, date_of_birth, gender, interests, timestamps
+- [X] T005 Add Organisation ORM model to backend/bellweaver/db/models.py with UUID, name (UNIQUE), type, address, contact_info (JSON), timestamps
+- [X] T006 Add ChildOrganisation association table to backend/bellweaver/db/models.py with composite PK (child_id, organisation_id), CASCADE DELETE
+- [X] T007 Add CommunicationChannel ORM model to backend/bellweaver/db/models.py with UUID, organisation_id (FK), channel_type, credential_source (FK), config (JSON), is_active, sync status fields, timestamps
+- [X] T008 Add SQLAlchemy relationships for Child ↔ Organisation many-to-many in backend/bellweaver/db/models.py
+- [X] T009 Add SQLAlchemy relationships for Organisation → CommunicationChannel one-to-many in backend/bellweaver/db/models.py
+- [X] T010 Add database initialization code to create new tables in backend/bellweaver/db/database.py
+- [X] T011 Create base Pydantic models in backend/bellweaver/models/family.py for ChildBase, OrganisationBase, ChannelBase
+- [X] T012 Add validation logic to Pydantic models: date_of_birth not in future, organisation type enum, channel type enum
+- [X] T013 [P] Create family_bp blueprint in backend/bellweaver/api/routes.py
+- [X] T014 [P] Add error handler classes (ValidationError, ConflictError) in backend/bellweaver/api/routes.py
+- [X] T015 [P] Register family_bp blueprint in backend/bellweaver/api/routes.py (registered in register_routes())
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

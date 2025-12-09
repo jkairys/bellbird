@@ -19,6 +19,9 @@ user_bp = Blueprint("users", __name__, url_prefix="/api/user")
 # Create blueprint for events-related routes
 events_bp = Blueprint("events", __name__, url_prefix="/api/events")
 
+# Create blueprint for family management routes
+family_bp = Blueprint("family", __name__, url_prefix="/api")
+
 
 @user_bp.route("", methods=["GET"])
 def get_user():
@@ -196,6 +199,46 @@ def get_events():
         db.close()
 
 
+# ==================== ERROR HANDLERS ====================
+
+class ValidationError(Exception):
+    """Raised when input validation fails."""
+
+    def __init__(self, message: str, code: str = "VALIDATION_ERROR"):
+        self.message = message
+        self.code = code
+        super().__init__(self.message)
+
+
+class ConflictError(Exception):
+    """Raised when a business rule conflict occurs."""
+
+    def __init__(self, message: str, code: str = "CONFLICT_ERROR"):
+        self.message = message
+        self.code = code
+        super().__init__(self.message)
+
+
+@family_bp.errorhandler(ValidationError)
+def handle_validation_error(error: ValidationError):
+    """Handle validation errors."""
+    return jsonify({
+        "error": "Validation Error",
+        "message": error.message,
+        "code": error.code
+    }), 400
+
+
+@family_bp.errorhandler(ConflictError)
+def handle_conflict_error(error: ConflictError):
+    """Handle conflict errors."""
+    return jsonify({
+        "error": "Conflict",
+        "message": error.message,
+        "code": error.code
+    }), 409
+
+
 def register_routes(app: Flask) -> None:
     """
     Register all route blueprints with the Flask application.
@@ -205,3 +248,4 @@ def register_routes(app: Flask) -> None:
     """
     app.register_blueprint(user_bp)
     app.register_blueprint(events_bp)
+    app.register_blueprint(family_bp)
