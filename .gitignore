@@ -213,3 +213,9 @@ backend/poetry.lock
 frontend/node_modules/
 frontend/dist/
 frontend/build/
+
+# MCP Browser
+mcp-browser/node_modules/
+mcp-browser/dist/
+mcp-browser/coverage/
+mcp-browser/*.log
