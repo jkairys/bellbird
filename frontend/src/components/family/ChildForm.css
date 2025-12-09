@@ -1,16 +1,17 @@
 /* ChildForm component styles */
 
 .child-form-container {
-  background-color: white;
+  background-color: var(--bg-card);
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   margin: 2rem 0;
+  border: 1px solid var(--border-light);
 }
 
 .child-form-container h2 {
   margin: 0 0 1.5rem 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.5rem;
 }
 
@@ -26,12 +27,12 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
 .required {
-  color: #e74c3c;
+  color: #EF5350;
   margin-left: 0.25rem;
 }
 
@@ -39,28 +40,29 @@
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-medium);
   border-radius: 4px;
   font-size: 1rem;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--bg-card);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: var(--color-lavender-dark);
+  box-shadow: 0 0 0 3px rgba(209, 196, 233, 0.3);
 }
 
 .form-group input.error,
 .form-group textarea.error {
-  border-color: #e74c3c;
+  border-color: #EF5350;
 }
 
 .form-group input.error:focus,
 .form-group textarea.error:focus {
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.2);
 }
 
 .form-group input[type='date'] {
@@ -74,7 +76,7 @@
 
 .error-message {
   display: block;
-  color: #e74c3c;
+  color: #EF5350;
   font-size: 0.85rem;
   margin-top: 0.5rem;
 }
@@ -110,21 +112,24 @@
 }
 
 .btn-primary {
-  background-color: #3498db;
+  background-color: var(--color-coral);
   color: white;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2980b9;
+  background-color: var(--color-coral-dark);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-cancel {
-  background-color: #95a5a6;
-  color: white;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
 }
 
 .btn-cancel:hover:not(:disabled) {
-  background-color: #7f8c8d;
+  background-color: var(--border-light);
 }
 
 /* Responsive design */
@@ -145,12 +150,13 @@
 .child-organisations-section {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-light);
 }
 
 .child-organisations-section h3 {
   font-size: 1.25rem;
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .associated-orgs {
@@ -164,10 +170,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: #f8f8f8;
-  border: 1px solid #e0e0e0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
   border-radius: 5px;
   margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.associated-orgs li:hover {
+  background-color: var(--color-peach);
 }
 
 .add-org-control {
@@ -179,6 +190,8 @@
 .add-org-control select {
   flex-grow: 1;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-medium);
   border-radius: 4px;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }

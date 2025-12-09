@@ -1,16 +1,17 @@
 /* ChannelConfig component styles */
 .channel-config {
-  background: white;
+  background: var(--bg-card);
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-light);
   margin-top: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .channel-config h4 {
   margin-top: 0;
   margin-bottom: 20px;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1.25rem;
 }
 
@@ -22,16 +23,26 @@
   display: block;
   margin-bottom: 5px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .channel-config .form-group input,
 .channel-config .form-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-medium);
   border-radius: 4px;
   font-size: 1rem;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.channel-config .form-group input:focus,
+.channel-config .form-group select:focus {
+  outline: none;
+  border-color: var(--color-lavender-dark);
+  box-shadow: 0 0 0 3px rgba(209, 196, 233, 0.3);
 }
 
 .channel-config .form-group input[type="checkbox"] {
@@ -57,11 +68,23 @@
 }
 
 .channel-config .btn-primary {
-  background-color: #3498db;
+  background-color: var(--color-coral);
   color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.channel-config .btn-primary:hover {
+  background-color: var(--color-coral-dark);
+  box-shadow: var(--shadow-md);
 }
 
 .channel-config .btn-delete {
-  background-color: #e74c3c;
+  background-color: #FFCDD2;
+  color: #C62828;
+  box-shadow: var(--shadow-sm);
+}
+
+.channel-config .btn-delete:hover {
+  background-color: #EF5350;
   color: white;
 }

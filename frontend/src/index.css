@@ -3,9 +3,33 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Light pastel color palette */
+  --bg-primary: #FFFDF7;
+  --bg-secondary: #FFF8F0;
+  --bg-card: #FFFFFF;
+
+  --color-coral: #FFB4A6;
+  --color-coral-dark: #FF8A80;
+  --color-lavender: #D1C4E9;
+  --color-lavender-dark: #B39DDB;
+  --color-mint: #C8E6C9;
+  --color-mint-dark: #A5D6A7;
+  --color-peach: #FFE0B2;
+  --color-sky: #BBDEFB;
+
+  --text-primary: #2C2C2C;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+
+  --border-light: #E8E8E8;
+  --border-medium: #D0D0D0;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -47,22 +71,16 @@ h2 {
 }
 
 .error {
-  color: #ff6b6b;
+  color: #D32F2F;
   padding: 1rem;
-  background-color: rgba(255, 107, 107, 0.1);
+  background-color: #FFEBEE;
+  border: 1px solid #FFCDD2;
   border-radius: 8px;
   margin: 1rem 0;
 }
 
 .loading {
-  color: #4ecdc4;
+  color: var(--color-lavender-dark);
   font-size: 1.2em;
   padding: 1rem;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
 }

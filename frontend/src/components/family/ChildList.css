@@ -7,22 +7,22 @@
 .child-list h2 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .child-list-loading {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
 .child-list-empty {
   text-align: center;
   padding: 3rem;
-  background-color: #f9f9f9;
+  background-color: var(--bg-secondary);
   border-radius: 8px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .child-list-empty p {
@@ -36,16 +36,17 @@
 }
 
 .child-card {
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
 }
 
 .child-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-lavender);
 }
 
 .child-card-header {
@@ -54,18 +55,18 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--border-light);
 }
 
 .child-card-header h3 {
   margin: 0;
   font-size: 1.25rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .child-age {
-  background-color: #3498db;
-  color: white;
+  background-color: var(--color-lavender);
+  color: var(--text-primary);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.85rem;
@@ -85,14 +86,14 @@
 .child-info label {
   font-weight: 600;
   font-size: 0.85rem;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .child-info span {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
@@ -101,7 +102,7 @@
   gap: 0.75rem;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-light);
 }
 
 .btn {
@@ -125,21 +126,25 @@
 }
 
 .btn-edit {
-  background-color: #3498db;
-  color: white;
+  background-color: var(--color-lavender);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-edit:hover {
-  background-color: #2980b9;
-}
-
-.btn-delete {
-  background-color: #e74c3c;
+  background-color: var(--color-lavender-dark);
   color: white;
 }
 
+.btn-delete {
+  background-color: #FFCDD2;
+  color: #C62828;
+  box-shadow: var(--shadow-sm);
+}
+
 .btn-delete:hover {
-  background-color: #c0392b;
+  background-color: #EF5350;
+  color: white;
 }
 
 /* Responsive design */
@@ -157,10 +162,10 @@
 }
 
 .org-badge {
-  background-color: #e8f0fe;
-  color: #1a73e8;
+  background-color: var(--color-sky);
+  color: var(--text-primary);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.85rem;
-  border: 1px solid #d2e3fc;
+  border: 1px solid var(--border-light);
 }
