@@ -1,39 +1,44 @@
-import { useState } from 'react'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import Dashboard from './components/Dashboard'
 import FamilyManagement from './pages/FamilyManagement'
-import { FamilyProvider } from './contexts/FamilyContext' // Import FamilyProvider
+import { FamilyProvider } from './contexts/FamilyContext'
 import './App.css'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard')
+  const location = useLocation()
 
   return (
     <div className="app">
       <nav className="app-nav">
         <div className="nav-brand">Bellweaver</div>
         <div className="nav-links">
-          <button
-            className={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('dashboard')}
+          <Link
+            to="/"
+            className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
           >
             Dashboard
-          </button>
-          <button
-            className={`nav-link ${currentPage === 'family' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('family')}
+          </Link>
+          <Link
+            to="/family"
+            className={`nav-link ${location.pathname === '/family' ? 'active' : ''}`}
           >
             Family Management
-          </button>
+          </Link>
         </div>
       </nav>
 
       <main className="app-content">
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'family' && (
-          <FamilyProvider> {/* Wrap with FamilyProvider */}
-            <FamilyManagement />
-          </FamilyProvider>
-        )}
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/family"
+            element={
+              <FamilyProvider>
+                <FamilyManagement />
+              </FamilyProvider>
+            }
+          />
+        </Routes>
       </main>
     </div>
   )
