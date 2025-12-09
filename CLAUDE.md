@@ -341,3 +341,10 @@ For detailed information, see:
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org)
 - [Flask Documentation](https://flask.palletsprojects.com)
 - [Poetry Documentation](https://python-poetry.org/docs)
+
+## Active Technologies
+- Python 3.10+ + Flask (web framework), SQLAlchemy 2.0 (ORM), Typer (CLI), Pydantic (validation), React 18 (frontend), Vite (build tool) (001-family-management)
+- SQLite with SQLAlchemy ORM (local-first, PostgreSQL-ready patterns) (001-family-management)
+
+## Recent Changes
+- 001-family-management: Added Python 3.10+ + Flask (web framework), SQLAlchemy 2.0 (ORM), Typer (CLI), Pydantic (validation), React 18 (frontend), Vite (build tool)
