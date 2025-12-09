@@ -60,20 +60,20 @@
 
 ### Tests for User Story 1 (Test-First)
 
-- [ ] T016 [P] [US1] Write integration test for POST /api/children with valid data in backend/tests/integration/test_family_api.py - expect 201, verify response matches ChildCreate schema, verify SC-001 (<200ms)
-- [ ] T017 [P] [US1] Write integration test for POST /api/children with missing required fields in backend/tests/integration/test_family_api.py - expect 400 with validation errors
-- [ ] T018 [P] [US1] Write integration test for POST /api/children with future date_of_birth in backend/tests/integration/test_family_api.py - expect 400 with error message per FR-010b
-- [ ] T019 [P] [US1] Write integration test for GET /api/children/:id with valid ID in backend/tests/integration/test_family_api.py - expect 200, verify child data returned
-- [ ] T020 [P] [US1] Write integration test for GET /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
-- [ ] T021 [P] [US1] Write integration test for GET /api/children in backend/tests/integration/test_family_api.py - expect 200, verify list contains created children, verify SC-005 (<200ms)
+- [X] T016 [P] [US1] Write integration test for POST /api/children with valid data in backend/tests/integration/test_family_api.py - expect 201, verify response matches ChildCreate schema, verify SC-001 (<200ms)
+- [X] T017 [P] [US1] Write integration test for POST /api/children with missing required fields in backend/tests/integration/test_family_api.py - expect 400 with validation errors
+- [X] T018 [P] [US1] Write integration test for POST /api/children with future date_of_birth in backend/tests/integration/test_family_api.py - expect 400 with error message per FR-010b
+- [X] T019 [P] [US1] Write integration test for GET /api/children/:id with valid ID in backend/tests/integration/test_family_api.py - expect 200, verify child data returned
+- [X] T020 [P] [US1] Write integration test for GET /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
+- [X] T021 [P] [US1] Write integration test for GET /api/children in backend/tests/integration/test_family_api.py - expect 200, verify list contains created children, verify SC-005 (<200ms)
 
 ### Implementation for User Story 1
 
-- [ ] T022 [P] [US1] Create ChildCreate Pydantic model in backend/bellweaver/models/family.py with required fields (name, date_of_birth) and optional fields (gender, interests)
-- [ ] T023 [P] [US1] Create Child response Pydantic model in backend/bellweaver/models/family.py with id, timestamps, all base fields
-- [ ] T024 [US1] Implement POST /api/children endpoint in backend/bellweaver/api/routes.py to create child, validate date_of_birth not in future, return 201 with created child - verify tests T016-T018 pass
-- [ ] T025 [US1] Implement GET /api/children/:id endpoint in backend/bellweaver/api/routes.py to retrieve single child, return 404 if not found - verify tests T019-T020 pass
-- [ ] T026 [US1] Implement GET /api/children endpoint in backend/bellweaver/api/routes.py to list all children - verify test T021 passes
+- [X] T022 [P] [US1] Create ChildCreate Pydantic model in backend/bellweaver/models/family.py with required fields (name, date_of_birth) and optional fields (gender, interests)
+- [X] T023 [P] [US1] Create Child response Pydantic model in backend/bellweaver/models/family.py with id, timestamps, all base fields
+- [X] T024 [US1] Implement POST /api/children endpoint in backend/bellweaver/api/routes.py to create child, validate date_of_birth not in future, return 201 with created child - verify tests T016-T018 pass
+- [X] T025 [US1] Implement GET /api/children/:id endpoint in backend/bellweaver/api/routes.py to retrieve single child, return 404 if not found - verify tests T019-T020 pass
+- [X] T026 [US1] Implement GET /api/children endpoint in backend/bellweaver/api/routes.py to list all children - verify test T021 passes
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Parents can create and view child profiles. All US1 integration tests pass.
 
@@ -87,17 +87,17 @@
 
 ### Tests for User Story 2 (Test-First)
 
-- [ ] T027 [P] [US2] Write integration test for PUT /api/children/:id with valid data in backend/tests/integration/test_family_api.py - expect 200, verify updated fields only
-- [ ] T028 [P] [US2] Write integration test for PUT /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
-- [ ] T029 [P] [US2] Write integration test for PUT /api/children/:id with future date_of_birth in backend/tests/integration/test_family_api.py - expect 400
-- [ ] T030 [P] [US2] Write integration test for DELETE /api/children/:id in backend/tests/integration/test_family_api.py - expect 204, verify child removed and associations cascade deleted (FR-017)
-- [ ] T031 [P] [US2] Write integration test for DELETE /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
+- [X] T027 [P] [US2] Write integration test for PUT /api/children/:id with valid data in backend/tests/integration/test_family_api.py - expect 200, verify updated fields only
+- [X] T028 [P] [US2] Write integration test for PUT /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
+- [X] T029 [P] [US2] Write integration test for PUT /api/children/:id with future date_of_birth in backend/tests/integration/test_family_api.py - expect 400
+- [X] T030 [P] [US2] Write integration test for DELETE /api/children/:id in backend/tests/integration/test_family_api.py - expect 204, verify child removed and associations cascade deleted (FR-017)
+- [X] T031 [P] [US2] Write integration test for DELETE /api/children/:id with invalid ID in backend/tests/integration/test_family_api.py - expect 404
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] Create ChildUpdate Pydantic model in backend/bellweaver/models/family.py (same fields as ChildCreate)
-- [ ] T033 [US2] Implement PUT /api/children/:id endpoint in backend/bellweaver/api/routes.py to update child profile, validate date_of_birth not in future, return 404 if child not found - verify tests T027-T029 pass
-- [ ] T034 [US2] Implement DELETE /api/children/:id endpoint in backend/bellweaver/api/routes.py with CASCADE delete of ChildOrganisation associations, return 204 on success - verify tests T030-T031 pass
+- [X] T032 [P] [US2] Create ChildUpdate Pydantic model in backend/bellweaver/models/family.py (same fields as ChildCreate)
+- [X] T033 [US2] Implement PUT /api/children/:id endpoint in backend/bellweaver/api/routes.py to update child profile, validate date_of_birth not in future, return 404 if child not found - verify tests T027-T029 pass
+- [X] T034 [US2] Implement DELETE /api/children/:id endpoint in backend/bellweaver/api/routes.py with CASCADE delete of ChildOrganisation associations, return 204 on success - verify tests T030-T031 pass
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Parents can fully manage multiple child profiles. All US1+US2 integration tests pass.
 
@@ -235,12 +235,12 @@
 
 ### Implementation
 
-- [ ] T055 [P] [US1] Create API service functions for children in frontend/src/services/familyApi.js (createChild, getChildren, getChild, updateChild, deleteChild)
-- [ ] T056 [P] [US1] Create ChildList component in frontend/src/components/family/ChildList.jsx to display all children with edit/delete buttons
-- [ ] T057 [P] [US2] Create ChildForm component in frontend/src/components/family/ChildForm.jsx for create/edit with validation (required fields, date picker, gender field, interests textarea)
-- [ ] T058 [US1] Integrate ChildList and ChildForm into FamilyManagement page at frontend/src/pages/FamilyManagement.jsx
-- [ ] T059 [US2] Add confirmation dialog for child deletion in ChildList component
-- [ ] T060 [US1] Add error handling and toast notifications for API errors in frontend components
+- [X] T055 [P] [US1] Create API service functions for children in frontend/src/services/familyApi.js (createChild, getChildren, getChild, updateChild, deleteChild)
+- [X] T056 [P] [US1] Create ChildList component in frontend/src/components/family/ChildList.jsx to display all children with edit/delete buttons
+- [X] T057 [P] [US2] Create ChildForm component in frontend/src/components/family/ChildForm.jsx for create/edit with validation (required fields, date picker, gender field, interests textarea)
+- [X] T058 [US1] Integrate ChildList and ChildForm into FamilyManagement page at frontend/src/pages/FamilyManagement.jsx
+- [X] T059 [US2] Add confirmation dialog for child deletion in ChildList component
+- [X] T060 [US1] Add error handling and toast notifications for API errors in frontend components
 
 **Checkpoint**: Frontend for child management (US1, US2) is complete. Parents can manage children via UI.
 
