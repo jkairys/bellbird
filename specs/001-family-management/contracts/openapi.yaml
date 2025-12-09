@@ -1,0 +1,825 @@
+openapi: 3.0.3
+info:
+  title: Bellweaver Family Management API
+  description: |
+    API for managing family structure (children, organisations, and communication channels)
+    in the Bellweaver calendar event aggregation system.
+  version: 1.0.0
+  contact:
+    name: Bellweaver
+    url: https://github.com/jkairys/bellweaver
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+
+tags:
+  - name: Children
+    description: Child profile management
+  - name: Organisations
+    description: Organisation (school, daycare, sports team) management
+  - name: Channels
+    description: Communication channel configuration
+  - name: Associations
+    description: Child-organisation associations
+
+paths:
+  # ==================== CHILDREN ====================
+  /children:
+    get:
+      tags: [Children]
+      summary: List all children
+      description: Returns a list of all child profiles in the family
+      operationId: listChildren
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  children:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Child'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Children]
+      summary: Create a child profile
+      description: Creates a new child profile with required and optional information
+      operationId: createChild
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildCreate'
+      responses:
+        '201':
+          description: Child created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Child'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /children/{childId}:
+    parameters:
+      - $ref: '#/components/parameters/childId'
+
+    get:
+      tags: [Children]
+      summary: Get child details
+      description: Returns detailed information about a specific child
+      operationId: getChild
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags: [Children]
+      summary: Update child profile
+      description: Updates an existing child profile
+      operationId: updateChild
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChildUpdate'
+      responses:
+        '200':
+          description: Child updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Child'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Children]
+      summary: Delete child profile
+      description: |
+        Deletes a child profile and automatically removes all child-organisation associations.
+        This action cannot be undone.
+      operationId: deleteChild
+      responses:
+        '204':
+          description: Child deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== ORGANISATIONS ====================
+  /organisations:
+    get:
+      tags: [Organisations]
+      summary: List all organisations
+      description: Returns a list of all organisations (schools, daycares, sports teams, etc.)
+      operationId: listOrganisations
+      parameters:
+        - name: type
+          in: query
+          description: Filter by organisation type
+          schema:
+            type: string
+            enum: [school, daycare, kindergarten, sports_team, other]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organisations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organisation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Organisations]
+      summary: Create an organisation
+      description: Creates a new organisation (school, daycare, sports team, etc.)
+      operationId: createOrganisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganisationCreate'
+      responses:
+        '201':
+          description: Organisation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /organisations/{organisationId}:
+    parameters:
+      - $ref: '#/components/parameters/organisationId'
+
+    get:
+      tags: [Organisations]
+      summary: Get organisation details
+      description: Returns detailed information about a specific organisation including associated children and channels
+      operationId: getOrganisation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags: [Organisations]
+      summary: Update organisation
+      description: Updates an existing organisation
+      operationId: updateOrganisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganisationUpdate'
+      responses:
+        '200':
+          description: Organisation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Organisations]
+      summary: Delete organisation
+      description: |
+        Deletes an organisation. Will fail if the organisation has associated children.
+        All child associations must be removed first.
+      operationId: deleteOrganisation
+      responses:
+        '204':
+          description: Organisation deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== ASSOCIATIONS ====================
+  /children/{childId}/organisations:
+    parameters:
+      - $ref: '#/components/parameters/childId'
+
+    get:
+      tags: [Associations]
+      summary: List child's organisations
+      description: Returns all organisations associated with a specific child
+      operationId: listChildOrganisations
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organisations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organisation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Associations]
+      summary: Associate child with organisation
+      description: Creates an association between a child and an organisation
+      operationId: addChildOrganisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - organisation_id
+              properties:
+                organisation_id:
+                  type: string
+                  format: uuid
+                  description: UUID of the organisation
+      responses:
+        '201':
+          description: Association created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Child associated with organisation successfully"
+                  child_id:
+                    type: string
+                    format: uuid
+                  organisation_id:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /children/{childId}/organisations/{organisationId}:
+    parameters:
+      - $ref: '#/components/parameters/childId'
+      - $ref: '#/components/parameters/organisationId'
+
+    delete:
+      tags: [Associations]
+      summary: Remove child-organisation association
+      description: Removes the association between a child and an organisation
+      operationId: removeChildOrganisation
+      responses:
+        '204':
+          description: Association removed successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== COMMUNICATION CHANNELS ====================
+  /organisations/{organisationId}/channels:
+    parameters:
+      - $ref: '#/components/parameters/organisationId'
+
+    get:
+      tags: [Channels]
+      summary: List organisation's channels
+      description: Returns all communication channels configured for an organisation
+      operationId: listOrganisationChannels
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommunicationChannel'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags: [Channels]
+      summary: Add communication channel
+      description: |
+        Adds a communication channel (Compass, HubHello, etc.) to an organisation.
+        For authenticated channels like Compass, credentials are validated before creation.
+      operationId: createChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelCreate'
+      responses:
+        '201':
+          description: Channel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationChannel'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /channels/{channelId}:
+    parameters:
+      - $ref: '#/components/parameters/channelId'
+
+    get:
+      tags: [Channels]
+      summary: Get channel details
+      description: Returns detailed information about a specific communication channel
+      operationId: getChannel
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationChannel'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags: [Channels]
+      summary: Update channel configuration
+      description: Updates channel configuration and/or credentials
+      operationId: updateChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelUpdate'
+      responses:
+        '200':
+          description: Channel updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationChannel'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags: [Channels]
+      summary: Delete communication channel
+      description: Removes a communication channel from an organisation
+      operationId: deleteChannel
+      responses:
+        '204':
+          description: Channel deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+# ==================== COMPONENTS ====================
+components:
+  parameters:
+    childId:
+      name: childId
+      in: path
+      required: true
+      description: Child UUID
+      schema:
+        type: string
+        format: uuid
+
+    organisationId:
+      name: organisationId
+      in: path
+      required: true
+      description: Organisation UUID
+      schema:
+        type: string
+        format: uuid
+
+    channelId:
+      name: channelId
+      in: path
+      required: true
+      description: Communication channel UUID
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # ========== CHILD SCHEMAS ==========
+    ChildBase:
+      type: object
+      required:
+        - name
+        - date_of_birth
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Child's full name
+          example: "Emma Johnson"
+        date_of_birth:
+          type: string
+          format: date
+          description: Child's date of birth (YYYY-MM-DD, cannot be in the future)
+          example: "2015-06-15"
+        gender:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Free-text gender field (optional)
+          example: "female"
+        interests:
+          type: string
+          nullable: true
+          description: Child's interests or hobbies (optional)
+          example: "Soccer, reading, science experiments"
+
+    ChildCreate:
+      allOf:
+        - $ref: '#/components/schemas/ChildBase'
+
+    ChildUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ChildBase'
+
+    Child:
+      allOf:
+        - $ref: '#/components/schemas/ChildBase'
+        - type: object
+          required:
+            - id
+            - created_at
+            - updated_at
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Child UUID
+            created_at:
+              type: string
+              format: date-time
+              description: Record creation timestamp (UTC)
+            updated_at:
+              type: string
+              format: date-time
+              description: Record last update timestamp (UTC)
+
+    ChildDetail:
+      allOf:
+        - $ref: '#/components/schemas/Child'
+        - type: object
+          properties:
+            organisations:
+              type: array
+              description: List of organisations this child attends
+              items:
+                $ref: '#/components/schemas/Organisation'
+
+    # ========== ORGANISATION SCHEMAS ==========
+    OrganisationBase:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Organisation name (must be unique)
+          example: "Springfield Elementary School"
+        type:
+          type: string
+          enum: [school, daycare, kindergarten, sports_team, other]
+          description: Type of organisation
+          example: "school"
+        address:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Physical address (optional)
+          example: "123 Main St, Springfield, VIC 3000"
+        contact_info:
+          type: object
+          nullable: true
+          description: Contact information (optional)
+          properties:
+            phone:
+              type: string
+              example: "+61 3 9876 5432"
+            email:
+              type: string
+              format: email
+              example: "admin@springfield.edu.au"
+            website:
+              type: string
+              format: uri
+              example: "https://springfield.edu.au"
+
+    OrganisationCreate:
+      allOf:
+        - $ref: '#/components/schemas/OrganisationBase'
+
+    OrganisationUpdate:
+      allOf:
+        - $ref: '#/components/schemas/OrganisationBase'
+
+    Organisation:
+      allOf:
+        - $ref: '#/components/schemas/OrganisationBase'
+        - type: object
+          required:
+            - id
+            - created_at
+            - updated_at
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Organisation UUID
+            created_at:
+              type: string
+              format: date-time
+              description: Record creation timestamp (UTC)
+            updated_at:
+              type: string
+              format: date-time
+              description: Record last update timestamp (UTC)
+
+    OrganisationDetail:
+      allOf:
+        - $ref: '#/components/schemas/Organisation'
+        - type: object
+          properties:
+            children:
+              type: array
+              description: List of children attending this organisation
+              items:
+                $ref: '#/components/schemas/Child'
+            channels:
+              type: array
+              description: List of communication channels for this organisation
+              items:
+                $ref: '#/components/schemas/CommunicationChannel'
+
+    # ========== COMMUNICATION CHANNEL SCHEMAS ==========
+    ChannelBase:
+      type: object
+      required:
+        - channel_type
+      properties:
+        channel_type:
+          type: string
+          enum: [compass, hubhello, classdojo, xplore, other]
+          description: Type of communication channel
+          example: "compass"
+        config:
+          type: object
+          nullable: true
+          description: Channel-specific configuration (varies by channel_type)
+          example:
+            base_url: "https://springfield.compass.education"
+            sync_interval_hours: 24
+        is_active:
+          type: boolean
+          default: true
+          description: Whether this channel is actively syncing
+          example: true
+
+    ChannelCreate:
+      allOf:
+        - $ref: '#/components/schemas/ChannelBase'
+        - type: object
+          properties:
+            credentials:
+              type: object
+              nullable: true
+              description: Credentials for authenticated channels (encrypted before storage)
+              properties:
+                username:
+                  type: string
+                  example: "parent@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+
+    ChannelUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ChannelBase'
+        - type: object
+          properties:
+            credentials:
+              type: object
+              nullable: true
+              description: Updated credentials (if changing)
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+
+    CommunicationChannel:
+      allOf:
+        - $ref: '#/components/schemas/ChannelBase'
+        - type: object
+          required:
+            - id
+            - organisation_id
+            - created_at
+            - updated_at
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Channel UUID
+            organisation_id:
+              type: string
+              format: uuid
+              description: Parent organisation UUID
+            credential_source:
+              type: string
+              nullable: true
+              description: Reference to credential storage
+              example: "compass_springfield"
+            last_sync_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Timestamp of last successful sync
+            last_sync_status:
+              type: string
+              enum: [success, failed, pending]
+              nullable: true
+              description: Status of last sync attempt
+              example: "success"
+            created_at:
+              type: string
+              format: date-time
+              description: Record creation timestamp (UTC)
+            updated_at:
+              type: string
+              format: date-time
+              description: Record last update timestamp (UTC)
+
+    # ========== ERROR SCHEMAS ==========
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code (optional)
+        details:
+          type: object
+          description: Additional error details (optional)
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Not Found"
+            message: "Child with id '550e8400-e29b-41d4-a716-446655440000' not found"
+            code: "RESOURCE_NOT_FOUND"
+
+    ValidationError:
+      description: Validation error (invalid input)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            future_date:
+              summary: Future date of birth
+              value:
+                error: "Validation Error"
+                message: "Date of birth cannot be in the future"
+                code: "INVALID_DATE_OF_BIRTH"
+            missing_field:
+              summary: Missing required field
+              value:
+                error: "Validation Error"
+                message: "Field 'name' is required"
+                code: "MISSING_REQUIRED_FIELD"
+
+    ConflictError:
+      description: Conflict with existing data or business rules
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            duplicate_name:
+              summary: Duplicate organisation name
+              value:
+                error: "Conflict"
+                message: "Organisation with name 'Springfield Elementary School' already exists"
+                code: "DUPLICATE_ORGANISATION_NAME"
+            has_children:
+              summary: Organisation has associated children
+              value:
+                error: "Conflict"
+                message: "Cannot delete organisation 'Springfield Elementary School' - it has 2 children associated. Remove all associations first."
+                code: "ORGANISATION_HAS_CHILDREN"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal Server Error"
+            message: "An unexpected error occurred"
+            code: "INTERNAL_ERROR"
