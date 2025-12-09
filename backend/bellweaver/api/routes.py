@@ -6,12 +6,17 @@ This module contains all the route handlers organized by domain (users, events, 
 
 from flask import Flask, jsonify, Blueprint
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from bellweaver.db.database import get_db
-from bellweaver.db.models import ApiPayload, Batch, Event, Child as DBChild
+from bellweaver.db.models import ApiPayload, Batch, Event, Child as DBChild, Organisation as DBOrganisation, ChildOrganisation
 from bellweaver.models.compass import CompassUser, CompassEvent
-from bellweaver.models.family import ChildCreate, ChildUpdate, Child as ChildResponse
+from bellweaver.models.family import (
+    ChildCreate, ChildUpdate, Child as ChildResponse,
+    OrganisationCreate, Organisation as OrganisationResponse,
+    ChildOrganisationCreate, ChildDetail, OrganisationDetail
+)
 from bellweaver.parsers.compass import CompassParser
 import uuid
 from datetime import datetime
@@ -282,7 +287,7 @@ def get_child(child_id: str):
         if not child:
             return jsonify({"error": "Child not found"}), 404
 
-        response = ChildResponse.model_validate(child)
+        response = ChildDetail.model_validate(child)
         return jsonify(response.model_dump(mode="json")), 200
 
     except Exception as e:
@@ -393,6 +398,260 @@ def delete_child(child_id: str):
             return jsonify({"error": "Child not found"}), 404
 
         db.delete(child)
+        db.commit()
+
+        return "", 204
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/organisations", methods=["POST"])
+def create_organisation():
+    """
+    Create a new organisation.
+
+    Request body should match OrganisationCreate schema.
+
+    Returns:
+        201: Organisation created successfully
+        400: Validation error
+        409: Duplicate name
+    """
+    from flask import request
+    db: Session = next(get_db())
+    try:
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Request body is required", "MISSING_BODY")
+
+        try:
+            org_data = OrganisationCreate(**data)
+        except Exception as e:
+            raise ValidationError(str(e), "VALIDATION_ERROR")
+
+        # Create ORM model
+        org = DBOrganisation(
+            id=str(uuid.uuid4()),
+            name=org_data.name,
+            type=org_data.type.value,
+            address=org_data.address,
+            contact_info=org_data.contact_info,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        db.add(org)
+        db.commit()
+        db.refresh(org)
+
+        response = OrganisationResponse.model_validate(org)
+        return jsonify(response.model_dump(mode="json")), 201
+
+    except ValidationError:
+        raise
+    except IntegrityError:
+        db.rollback()
+        raise ConflictError(f"Organisation with name '{org_data.name}' already exists", "DUPLICATE_NAME")
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/organisations/<org_id>", methods=["GET"])
+def get_organisation(org_id: str):
+    """
+    Get organisation by ID.
+
+    Args:
+        org_id: UUID of the organisation
+
+    Returns:
+        200: Organisation data
+        404: Organisation not found
+    """
+    db: Session = next(get_db())
+    try:
+        stmt = select(DBOrganisation).where(DBOrganisation.id == org_id)
+        org = db.execute(stmt).scalar_one_or_none()
+
+        if not org:
+            return jsonify({"error": "Organisation not found"}), 404
+
+        response = OrganisationDetail.model_validate(org)
+        return jsonify(response.model_dump(mode="json")), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/organisations", methods=["GET"])
+def list_organisations():
+    """
+    List organisations with optional type filter.
+
+    Query Params:
+        type: Filter by organisation type
+
+    Returns:
+        200: List of organisations
+    """
+    from flask import request
+    db: Session = next(get_db())
+    try:
+        stmt = select(DBOrganisation).order_by(DBOrganisation.name.asc())
+
+        # Apply type filter if present
+        type_filter = request.args.get('type')
+        if type_filter:
+            stmt = stmt.where(DBOrganisation.type == type_filter)
+
+        orgs = db.execute(stmt).scalars().all()
+
+        response = [OrganisationResponse.model_validate(org).model_dump(mode="json") for org in orgs]
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/children/<child_id>/organisations", methods=["POST"])
+def create_child_organisation(child_id: str):
+    """
+    Associate a child with an organisation.
+
+    Args:
+        child_id: UUID of the child
+
+    Request body should match ChildOrganisationCreate schema:
+        {
+            "organisation_id": "uuid-string"
+        }
+
+    Returns:
+        201: Association created
+        400: Validation error
+        404: Child or Organisation not found
+        409: Association already exists
+    """
+    from flask import request
+    db: Session = next(get_db())
+    try:
+        # Check if child exists
+        stmt = select(DBChild).where(DBChild.id == child_id)
+        child = db.execute(stmt).scalar_one_or_none()
+        if not child:
+            return jsonify({"error": "Child not found"}), 404
+
+        # Validate request
+        data = request.get_json()
+        if not data:
+            raise ValidationError("Request body is required", "MISSING_BODY")
+
+        try:
+            assoc_data = ChildOrganisationCreate(**data)
+        except Exception as e:
+            raise ValidationError(str(e), "VALIDATION_ERROR")
+
+        # Check if organisation exists
+        stmt = select(DBOrganisation).where(DBOrganisation.id == assoc_data.organisation_id)
+        org = db.execute(stmt).scalar_one_or_none()
+        if not org:
+            return jsonify({"error": "Organisation not found"}), 404
+
+        # Check if association already exists
+        stmt = select(ChildOrganisation).where(
+            ChildOrganisation.child_id == child_id,
+            ChildOrganisation.organisation_id == assoc_data.organisation_id
+        )
+        existing = db.execute(stmt).scalar_one_or_none()
+        if existing:
+            return jsonify({"error": "Association already exists"}), 409
+
+        # Create association
+        assoc = ChildOrganisation(
+            child_id=child_id,
+            organisation_id=assoc_data.organisation_id
+        )
+        db.add(assoc)
+        db.commit()
+
+        return jsonify({"message": "Association created"}), 201
+
+    except ValidationError:
+        raise
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/children/<child_id>/organisations", methods=["GET"])
+def get_child_organisations(child_id: str):
+    """
+    List organisations associated with a child.
+
+    Args:
+        child_id: UUID of the child
+
+    Returns:
+        200: List of organisations
+        404: Child not found
+    """
+    db: Session = next(get_db())
+    try:
+        # Check if child exists
+        stmt = select(DBChild).where(DBChild.id == child_id)
+        child = db.execute(stmt).scalar_one_or_none()
+        if not child:
+            return jsonify({"error": "Child not found"}), 404
+
+        # Get organisations via relationship
+        # Note: child.organisations is a list of DBOrganisation objects due to relationship
+        response = [OrganisationResponse.model_validate(org).model_dump(mode="json") for org in child.organisations]
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    finally:
+        db.close()
+
+
+@family_bp.route("/children/<child_id>/organisations/<org_id>", methods=["DELETE"])
+def delete_child_organisation(child_id: str, org_id: str):
+    """
+    Remove association between child and organisation.
+
+    Args:
+        child_id: UUID of the child
+        org_id: UUID of the organisation
+
+    Returns:
+        204: Association removed
+        404: Association not found (or child/org not found)
+    """
+    db: Session = next(get_db())
+    try:
+        stmt = select(ChildOrganisation).where(
+            ChildOrganisation.child_id == child_id,
+            ChildOrganisation.organisation_id == org_id
+        )
+        assoc = db.execute(stmt).scalar_one_or_none()
+
+        if not assoc:
+            return jsonify({"error": "Association not found"}), 404
+
+        db.delete(assoc)
         db.commit()
 
         return "", 204

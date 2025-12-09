@@ -111,19 +111,19 @@
 
 ### Tests for User Story 3 (Test-First)
 
-- [ ] T035 [P] [US3] Write integration test for POST /api/organisations with valid data in backend/tests/integration/test_family_api.py - expect 201, verify organisation created
-- [ ] T036 [P] [US3] Write integration test for POST /api/organisations with duplicate name in backend/tests/integration/test_family_api.py - expect 409 with error per FR-010a
-- [ ] T037 [P] [US3] Write integration test for POST /api/organisations with invalid type in backend/tests/integration/test_family_api.py - expect 400
-- [ ] T038 [P] [US3] Write integration test for GET /api/organisations/:id in backend/tests/integration/test_family_api.py - expect 200 with organisation data
-- [ ] T039 [P] [US3] Write integration test for GET /api/organisations with type filter in backend/tests/integration/test_family_api.py - expect 200, verify filtering works, verify SC-005 (<200ms)
+- [X] T035 [P] [US3] Write integration test for POST /api/organisations with valid data in backend/tests/integration/test_family_api.py - expect 201, verify organisation created
+- [X] T036 [P] [US3] Write integration test for POST /api/organisations with duplicate name in backend/tests/integration/test_family_api.py - expect 409 with error per FR-010a
+- [X] T037 [P] [US3] Write integration test for POST /api/organisations with invalid type in backend/tests/integration/test_family_api.py - expect 400
+- [X] T038 [P] [US3] Write integration test for GET /api/organisations/:id in backend/tests/integration/test_family_api.py - expect 200 with organisation data
+- [X] T039 [P] [US3] Write integration test for GET /api/organisations with type filter in backend/tests/integration/test_family_api.py - expect 200, verify filtering works, verify SC-005 (<200ms)
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Create OrganisationCreate Pydantic model in backend/bellweaver/models/family.py with required (name, type) and optional (address, contact_info) fields
-- [ ] T041 [P] [US3] Create Organisation response Pydantic model in backend/bellweather/models/family.py with id, timestamps, all base fields
-- [ ] T042 [US3] Implement POST /api/organisations endpoint in backend/bellweaver/api/routes.py to create organisation, enforce unique name constraint, return 409 if duplicate name - verify tests T035-T037 pass
-- [ ] T043 [US3] Implement GET /api/organisations/:id endpoint in backend/bellweaver/api/routes.py to retrieve single organisation, return 404 if not found - verify test T038 passes
-- [ ] T044 [US3] Implement GET /api/organisations endpoint in backend/bellweaver/api/routes.py with optional type filter query parameter - verify test T039 passes
+- [X] T040 [P] [US3] Create OrganisationCreate Pydantic model in backend/bellweaver/models/family.py with required (name, type) and optional (address, contact_info) fields
+- [X] T041 [P] [US3] Create Organisation response Pydantic model in backend/bellweather/models/family.py with id, timestamps, all base fields
+- [X] T042 [US3] Implement POST /api/organisations endpoint in backend/bellweaver/api/routes.py to create organisation, enforce unique name constraint, return 409 if duplicate name - verify tests T035-T037 pass
+- [X] T043 [US3] Implement GET /api/organisations/:id endpoint in backend/bellweaver/api/routes.py to retrieve single organisation, return 404 if not found - verify test T038 passes
+- [X] T044 [US3] Implement GET /api/organisations endpoint in backend/bellweaver/api/routes.py with optional type filter query parameter - verify test T039 passes
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work independently. Parents can manage children and organisations separately. All US1+US2+US3 integration tests pass.
 
@@ -137,22 +137,22 @@
 
 ### Tests for User Story 4 (Test-First)
 
-- [ ] T045 [P] [US4] Write integration test for POST /api/children/:id/organisations with valid IDs in backend/tests/integration/test_family_api.py - expect 201, verify association created, verify SC-002 (<200ms)
-- [ ] T046 [P] [US4] Write integration test for POST /api/children/:id/organisations with non-existent child/org in backend/tests/integration/test_family_api.py - expect 404 per edge case spec
-- [ ] T047 [P] [US4] Write integration test for POST /api/children/:id/organisations with duplicate association in backend/tests/integration/test_family_api.py - expect 409 per edge case spec
-- [ ] T048 [P] [US4] Write integration test for GET /api/children/:id/organisations in backend/tests/integration/test_family_api.py - expect 200 with organisations list
-- [ ] T049 [P] [US4] Write integration test for DELETE /api/children/:child_id/organisations/:org_id in backend/tests/integration/test_family_api.py - expect 204, verify association removed
-- [ ] T050 [P] [US4] Write integration test verifying GET /api/children/:id returns ChildDetail with organisations in backend/tests/integration/test_family_api.py
+- [X] T045 [P] [US4] Write integration test for POST /api/children/:id/organisations with valid IDs in backend/tests/integration/test_family_api.py - expect 201, verify association created, verify SC-002 (<200ms)
+- [X] T046 [P] [US4] Write integration test for POST /api/children/:id/organisations with non-existent child/org in backend/tests/integration/test_family_api.py - expect 404 per edge case spec
+- [X] T047 [P] [US4] Write integration test for POST /api/children/:id/organisations with duplicate association in backend/tests/integration/test_family_api.py - expect 409 per edge case spec
+- [X] T048 [P] [US4] Write integration test for GET /api/children/:id/organisations in backend/tests/integration/test_family_api.py - expect 200 with organisations list
+- [X] T049 [P] [US4] Write integration test for DELETE /api/children/:child_id/organisations/:org_id in backend/tests/integration/test_family_api.py - expect 204, verify association removed
+- [X] T050 [P] [US4] Write integration test verifying GET /api/children/:id returns ChildDetail with organisations in backend/tests/integration/test_family_api.py
 
 ### Implementation for User Story 4
 
-- [ ] T051 [P] [US4] Create ChildDetail Pydantic model in backend/bellweaver/models/family.py with organisations list
-- [ ] T052 [P] [US4] Create OrganisationDetail Pydantic model in backend/bellweaver/models/family.py with children list
-- [ ] T053 [US4] Implement POST /api/children/:id/organisations endpoint in backend/bellweaver/api/routes.py to create association, validate both IDs exist, return 409 if already associated - verify tests T045-T047 pass
-- [ ] T054 [US4] Implement GET /api/children/:id/organisations endpoint in backend/bellweaver/api/routes.py to list child's organisations - verify test T048 passes
-- [ ] T055 [US4] Implement DELETE /api/children/:child_id/organisations/:org_id endpoint in backend/bellweaver/api/routes.py to remove association, return 404 if association doesn't exist - verify test T049 passes
-- [ ] T056 [US4] Update GET /api/children/:id endpoint to return ChildDetail with organisations list in backend/bellweaver/api/routes.py - verify test T050 passes
-- [ ] T057 [US4] Update GET /api/organisations/:id endpoint to return OrganisationDetail with children and channels lists in backend/bellweaver/api/routes.py
+- [X] T051 [P] [US4] Create ChildDetail Pydantic model in backend/bellweaver/models/family.py with organisations list
+- [X] T052 [P] [US4] Create OrganisationDetail Pydantic model in backend/bellweaver/models/family.py with children list
+- [X] T053 [US4] Implement POST /api/children/:id/organisations endpoint in backend/bellweaver/api/routes.py to create association, validate both IDs exist, return 409 if already associated - verify tests T045-T047 pass
+- [X] T054 [US4] Implement GET /api/children/:id/organisations endpoint in backend/bellweaver/api/routes.py to list child's organisations - verify test T048 passes
+- [X] T055 [US4] Implement DELETE /api/children/:child_id/organisations/:org_id endpoint in backend/bellweaver/api/routes.py to remove association, return 404 if association doesn't exist - verify test T049 passes
+- [X] T056 [US4] Update GET /api/children/:id endpoint to return ChildDetail with organisations list in backend/bellweaver/api/routes.py - verify test T050 passes
+- [X] T057 [US4] Update GET /api/organisations/:id endpoint to return OrganisationDetail with children and channels lists in backend/bellweaver/api/routes.py
 
 **Checkpoint**: At this point, all foundational user stories work together. Parents can create children, organisations, and link them. All US1-US4 integration tests pass.
 

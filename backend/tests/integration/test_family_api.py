@@ -322,3 +322,306 @@ class TestUserStory2DeleteChild:
         response = client.delete(f'/api/children/{fake_id}')
 
         assert response.status_code == 404
+
+
+# ============================================================================
+# Phase 5: User Story 3 - Define Organisation
+# ============================================================================
+
+class TestUserStory3CreateOrganisation:
+    """Tests for POST /api/organisations endpoint."""
+
+    def test_create_organisation_with_valid_data(self, client):
+        """
+        T035: POST /api/organisations with valid data
+        Expect: 201 Created, verify organisation created
+        """
+        payload = {
+            "name": "Springfield Elementary",
+            "type": "school",
+            "address": "123 School Lane",
+            "contact_info": {"phone": "555-1234", "email": "admin@springfield.edu"}
+        }
+
+        response = client.post('/api/organisations',
+                              data=json.dumps(payload),
+                              content_type='application/json')
+
+        assert response.status_code == 201
+        data = response.get_json()
+        assert data['name'] == "Springfield Elementary"
+        assert data['type'] == "school"
+        assert data['address'] == "123 School Lane"
+        assert data['contact_info']['phone'] == "555-1234"
+        assert 'id' in data
+
+    def test_create_organisation_duplicate_name(self, client):
+        """
+        T036: POST /api/organisations with duplicate name
+        Expect: 409 Conflict with error per FR-010a
+        """
+        payload = {
+            "name": "Unique School",
+            "type": "school"
+        }
+        # Create first time
+        client.post('/api/organisations',
+                   data=json.dumps(payload),
+                   content_type='application/json')
+        
+        # Create second time
+        response = client.post('/api/organisations',
+                              data=json.dumps(payload),
+                              content_type='application/json')
+        
+        assert response.status_code == 409
+        data = response.get_json()
+        assert 'error' in data
+        # Check either error or message field for the detail
+        error_text = json.dumps(data).lower()
+        assert 'name' in error_text
+
+    def test_create_organisation_invalid_type(self, client):
+        """
+        T037: POST /api/organisations with invalid type
+        Expect: 400 Bad Request
+        """
+        payload = {
+            "name": "Bad Type School",
+            "type": "invalid_type"
+        }
+
+        response = client.post('/api/organisations',
+                              data=json.dumps(payload),
+                              content_type='application/json')
+        
+        assert response.status_code == 400
+
+class TestUserStory3GetOrganisation:
+    """Tests for GET /api/organisations endpoints."""
+
+    def test_get_organisation_by_id(self, client):
+        """
+        T038: GET /api/organisations/:id
+        Expect: 200 OK with organisation data
+        """
+        # Create org
+        payload = {"name": "Test Org", "type": "school"}
+        create_resp = client.post('/api/organisations',
+                                 data=json.dumps(payload),
+                                 content_type='application/json')
+        org_id = create_resp.get_json()['id']
+
+        # Get org
+        response = client.get(f'/api/organisations/{org_id}')
+        
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['id'] == org_id
+        assert data['name'] == "Test Org"
+
+    def test_list_organisations_with_filter(self, client):
+        """
+        T039: GET /api/organisations with type filter
+        Expect: 200 OK, verify filtering works, verify SC-005 (<200ms)
+        """
+        # Create orgs of different types
+        orgs = [
+            {"name": "School A", "type": "school"},
+            {"name": "Club B", "type": "club"},
+            {"name": "School C", "type": "school"}
+        ]
+        for org in orgs:
+            client.post('/api/organisations',
+                       data=json.dumps(org),
+                       content_type='application/json')
+
+        import time
+        start_time = time.time()
+        # Filter for schools
+        response = client.get('/api/organisations?type=school')
+        elapsed_time = (time.time() - start_time) * 1000
+
+        assert response.status_code == 200
+        data = response.get_json()
+        
+        assert isinstance(data, list)
+        assert len(data) == 2
+        for org in data:
+            assert org['type'] == "school"
+
+        assert elapsed_time < 200
+
+
+# ============================================================================
+# Phase 6: User Story 4 - Associate Children with Organisations
+# ============================================================================
+
+class TestUserStory4Associations:
+    """Tests for child-organisation association endpoints."""
+
+    def test_create_association_success(self, client):
+        """
+        T045: POST /api/children/:id/organisations with valid IDs
+        Expect: 201 Created, verify association created, verify SC-002 (<200ms)
+        """
+        # Create child
+        child_resp = client.post('/api/children',
+                                data=json.dumps({"name": "Student", "date_of_birth": "2015-01-01"}),
+                                content_type='application/json')
+        child_id = child_resp.get_json()['id']
+
+        # Create organisation
+        org_resp = client.post('/api/organisations',
+                              data=json.dumps({"name": "School", "type": "school"}),
+                              content_type='application/json')
+        org_id = org_resp.get_json()['id']
+
+        # Create association
+        payload = {"organisation_id": org_id}
+        
+        import time
+        start_time = time.time()
+        response = client.post(f'/api/children/{child_id}/organisations',
+                              data=json.dumps(payload),
+                              content_type='application/json')
+        elapsed_time = (time.time() - start_time) * 1000
+
+        assert response.status_code == 201
+        
+        # Verify SC-002: Response time < 200ms
+        assert elapsed_time < 200
+
+        # Verify association exists
+        get_resp = client.get(f'/api/children/{child_id}/organisations')
+        assert get_resp.status_code == 200
+        orgs = get_resp.get_json()
+        assert len(orgs) == 1
+        assert orgs[0]['id'] == org_id
+
+    def test_create_association_not_found(self, client):
+        """
+        T046: POST /api/children/:id/organisations with non-existent child/org
+        Expect: 404 Not Found
+        """
+        fake_id = "00000000-0000-0000-0000-000000000000"
+        
+        # Case 1: Child not found
+        resp1 = client.post(f'/api/children/{fake_id}/organisations',
+                           data=json.dumps({"organisation_id": fake_id}),
+                           content_type='application/json')
+        assert resp1.status_code == 404
+
+        # Case 2: Org not found (create child first)
+        child_resp = client.post('/api/children',
+                                data=json.dumps({"name": "Student", "date_of_birth": "2015-01-01"}),
+                                content_type='application/json')
+        child_id = child_resp.get_json()['id']
+        
+        resp2 = client.post(f'/api/children/{child_id}/organisations',
+                           data=json.dumps({"organisation_id": fake_id}),
+                           content_type='application/json')
+        assert resp2.status_code == 404
+
+    def test_create_association_duplicate(self, client):
+        """
+        T047: POST /api/children/:id/organisations with duplicate association
+        Expect: 409 Conflict
+        """
+        # Create child and org
+        child_id = client.post('/api/children', 
+                              data=json.dumps({"name": "C", "date_of_birth": "2015-01-01"}),
+                              content_type='application/json').get_json()['id']
+        org_id = client.post('/api/organisations',
+                            data=json.dumps({"name": "S", "type": "school"}),
+                            content_type='application/json').get_json()['id']
+        
+        # Create first time
+        client.post(f'/api/children/{child_id}/organisations',
+                   data=json.dumps({"organisation_id": org_id}),
+                   content_type='application/json')
+        
+        # Create second time
+        response = client.post(f'/api/children/{child_id}/organisations',
+                              data=json.dumps({"organisation_id": org_id}),
+                              content_type='application/json')
+        
+        assert response.status_code == 409
+
+    def test_get_child_organisations(self, client):
+        """
+        T048: GET /api/children/:id/organisations
+        Expect: 200 OK with organisations list
+        """
+        # Create child
+        child_id = client.post('/api/children',
+                              data=json.dumps({"name": "C", "date_of_birth": "2015-01-01"}),
+                              content_type='application/json').get_json()['id']
+        
+        # Create and link 2 orgs
+        for name in ["School A", "Club B"]:
+            org_id = client.post('/api/organisations',
+                                data=json.dumps({"name": name, "type": "school"}),
+                                content_type='application/json').get_json()['id']
+            client.post(f'/api/children/{child_id}/organisations',
+                       data=json.dumps({"organisation_id": org_id}),
+                       content_type='application/json')
+            
+        # Get list
+        response = client.get(f'/api/children/{child_id}/organisations')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert len(data) == 2
+        names = [o['name'] for o in data]
+        assert "School A" in names
+        assert "Club B" in names
+
+    def test_delete_association(self, client):
+        """
+        T049: DELETE /api/children/:child_id/organisations/:org_id
+        Expect: 204 No Content, verify association removed
+        """
+        # Setup
+        child_id = client.post('/api/children',
+                              data=json.dumps({"name": "C", "date_of_birth": "2015-01-01"}),
+                              content_type='application/json').get_json()['id']
+        org_id = client.post('/api/organisations',
+                            data=json.dumps({"name": "S", "type": "school"}),
+                            content_type='application/json').get_json()['id']
+        client.post(f'/api/children/{child_id}/organisations',
+                   data=json.dumps({"organisation_id": org_id}),
+                   content_type='application/json')
+        
+        # Delete
+        response = client.delete(f'/api/children/{child_id}/organisations/{org_id}')
+        assert response.status_code == 204
+        
+        # Verify removed
+        get_resp = client.get(f'/api/children/{child_id}/organisations')
+        data = get_resp.get_json()
+        assert len(data) == 0
+
+    def test_get_child_detail_includes_organisations(self, client):
+        """
+        T050: GET /api/children/:id returns ChildDetail
+        Expect: 200 OK, response includes organisations list
+        """
+        # Setup
+        child_id = client.post('/api/children',
+                              data=json.dumps({"name": "C", "date_of_birth": "2015-01-01"}),
+                              content_type='application/json').get_json()['id']
+        org_id = client.post('/api/organisations',
+                            data=json.dumps({"name": "S", "type": "school"}),
+                            content_type='application/json').get_json()['id']
+        client.post(f'/api/children/{child_id}/organisations',
+                   data=json.dumps({"organisation_id": org_id}),
+                   content_type='application/json')
+        
+        # Get child detail
+        response = client.get(f'/api/children/{child_id}')
+        data = response.get_json()
+        
+        assert 'organisations' in data
+        assert isinstance(data['organisations'], list)
+        assert len(data['organisations']) == 1
+        assert data['organisations'][0]['id'] == org_id
