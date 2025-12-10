@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .exceptions import CompassClientError
+
 
 class CompassMockClient:
     """
@@ -18,7 +20,13 @@ class CompassMockClient:
     Falls back to hardcoded synthetic events if the file doesn't exist.
     """
 
-    def __init__(self, base_url: str, username: str, password: str):
+    def __init__(
+        self,
+        base_url: str,
+        username: str,
+        password: str,
+        mock_data_dir: Optional[str] = None,
+    ):
         """
         Initialize mock client.
 
@@ -26,22 +34,31 @@ class CompassMockClient:
             base_url: Base URL (not used, but maintains interface parity)
             username: Username (not used, but maintains interface parity)
             password: Password (not used, but maintains interface parity)
+            mock_data_dir: Optional custom directory for mock data files
         """
         self.base_url = base_url
         self.username = username
         self.password = password
-        self.user_id = 12345
+        self.mock_data_dir = mock_data_dir
+        self.user_id = None
         self._authenticated = False
-        self._events: List[Dict[str, Any]] = []
-        self._user: Dict[str, Any] = {}
+        self._mock_events: Optional[List[Dict[str, Any]]] = None
+        self._mock_user: Optional[Dict[str, Any]] = None
 
-    def _load_mock_events(self) -> List[Dict[str, Any]]:
+    def _load_mock_events_data(self) -> List[Dict[str, Any]]:
         """
         Load mock events from data/mock/compass_events.json.
 
-        Falls back to hardcoded synthetic events if file doesn't exist.
+        Falls back to hardcoded synthetic events if file doesn't exist
+        (only when using default mock_data_dir).
+
+        Raises:
+            FileNotFoundError: If custom mock_data_dir is specified but file doesn't exist
         """
-        mock_file = Path(__file__).parent.parent / "data" / "mock" / "compass_events.json"
+        if self.mock_data_dir:
+            mock_file = Path(self.mock_data_dir) / "compass_events.json"
+        else:
+            mock_file = Path(__file__).parent.parent / "data" / "mock" / "compass_events.json"
 
         if mock_file.exists():
             try:
@@ -50,17 +67,30 @@ class CompassMockClient:
                 return events
             except (json.JSONDecodeError, IOError) as e:
                 print(f"Warning: Failed to load mock data from {mock_file}: {e}")
+                if self.mock_data_dir:
+                    raise
                 print("Falling back to hardcoded synthetic events")
+
+        # If custom mock_data_dir was specified, raise error instead of falling back
+        if self.mock_data_dir:
+            raise FileNotFoundError(f"Mock data file not found: {mock_file}")
 
         return self._get_fallback_events()
 
-    def _load_mock_user(self) -> Dict[str, Any]:
+    def _load_mock_user_data(self) -> Dict[str, Any]:
         """
         Load mock user from data/mock/compass_user.json.
 
-        Falls back to hardcoded synthetic user if file doesn't exist.
+        Falls back to hardcoded synthetic user if file doesn't exist
+        (only when using default mock_data_dir).
+
+        Raises:
+            FileNotFoundError: If custom mock_data_dir is specified but file doesn't exist
         """
-        mock_file = Path(__file__).parent.parent / "data" / "mock" / "compass_user.json"
+        if self.mock_data_dir:
+            mock_file = Path(self.mock_data_dir) / "compass_user.json"
+        else:
+            mock_file = Path(__file__).parent.parent / "data" / "mock" / "compass_user.json"
 
         if mock_file.exists():
             try:
@@ -69,7 +99,13 @@ class CompassMockClient:
                 return user
             except (json.JSONDecodeError, IOError) as e:
                 print(f"Warning: Failed to load mock data from {mock_file}: {e}")
+                if self.mock_data_dir:
+                    raise
                 print("Falling back to hardcoded synthetic user")
+
+        # If custom mock_data_dir was specified, raise error instead of falling back
+        if self.mock_data_dir:
+            raise FileNotFoundError(f"Mock data file not found: {mock_file}")
 
         return self._get_fallback_user()
 
@@ -214,6 +250,7 @@ class CompassMockClient:
         return {
             "__type": "UserDetailsBlob",
             "userId": 12345,
+            "username": "jsmith",
             "userFirstName": "Jane",
             "userLastName": "Smith",
             "userPreferredName": "Jane",
@@ -249,8 +286,9 @@ class CompassMockClient:
     def login(self) -> bool:
         """Mock login - always succeeds and loads mock data."""
         self._authenticated = True
-        self._events = self._load_mock_events()
-        self._user = self._load_mock_user()
+        self._mock_events = self._load_mock_events_data()
+        self._mock_user = self._load_mock_user_data()
+        self.user_id = self._mock_user.get("userId")
         return True
 
     def get_user_details(self, target_user_id: Optional[int] = None) -> Dict[str, Any]:
@@ -264,9 +302,13 @@ class CompassMockClient:
             Dictionary containing mock user details
         """
         if not self._authenticated:
-            raise Exception("Not authenticated. Call login() first.")
+            raise CompassClientError("Not authenticated. Call login() first.")
 
-        return self._user
+        if self._mock_user is None:
+            self._mock_user = self._load_mock_user_data()
+            self.user_id = self._mock_user.get("userId")
+
+        return self._mock_user
 
     def get_calendar_events(
         self, start_date: str, end_date: str, limit: int = 100
@@ -285,13 +327,16 @@ class CompassMockClient:
             List of calendar event dictionaries
         """
         if not self._authenticated:
-            raise Exception("Not authenticated. Call login() first.")
+            raise CompassClientError("Not authenticated. Call login() first.")
+
+        if self._mock_events is None:
+            self._mock_events = self._load_mock_events_data()
 
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
 
         filtered = []
-        for event in self._events:
+        for event in self._mock_events:
             try:
                 event_start_str = event.get("start", "")
                 if not event_start_str:
