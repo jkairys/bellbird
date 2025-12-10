@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run All Tests
 
 on:
   pull_request:
@@ -8,13 +8,15 @@ on:
     branches:
       - main
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+env:
+  COMPASS_MODE: mock
 
+jobs:
+  test-compass-client:
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: packages/compass-client
 
     steps:
       - name: Checkout code
@@ -34,27 +36,78 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          path: packages/compass-client/.venv
+          key: venv-compass-${{ runner.os }}-${{ hashFiles('packages/compass-client/poetry.lock') }}
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --with dev --no-interaction
+        run: poetry install --no-interaction
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=bellweaver --cov-report=xml --cov-report=term --ignore=tests/test_compass_client_real.py
+        run: poetry run pytest --cov=compass_client --cov-report=xml --cov-report=term
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/compass-client/coverage.xml
+          flags: compass-client
+          fail_ci_if_error: false
+
+  test-bellweaver:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/bellweaver
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv (compass-client)
+        id: cached-compass-venv
+        uses: actions/cache@v4
+        with:
+          path: packages/compass-client/.venv
+          key: venv-compass-${{ runner.os }}-${{ hashFiles('packages/compass-client/poetry.lock') }}
+
+      - name: Install compass-client
+        run: |
+          cd ../compass-client
+          poetry install --no-interaction
+
+      - name: Load cached venv (bellweaver)
+        id: cached-bellweaver-venv
+        uses: actions/cache@v4
+        with:
+          path: packages/bellweaver/.venv
+          key: venv-bellweaver-${{ runner.os }}-${{ hashFiles('packages/bellweaver/poetry.lock') }}
+
+      - name: Install bellweaver dependencies
+        if: steps.cached-bellweaver-venv.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=bellweaver --cov-report=xml --cov-report=term
         env:
-          # Skip integration tests that require real Compass authentication
-          # These tests may fail in CI due to IP restrictions or rate limiting
           CLAUDE_API_KEY: test_key
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
-          files: ./backend/coverage.xml
-          flags: unittests
-          name: codecov-umbrella
+          files: packages/bellweaver/coverage.xml
+          flags: bellweaver
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}

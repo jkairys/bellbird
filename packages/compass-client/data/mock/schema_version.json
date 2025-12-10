@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "api_version": "1.0",
+  "last_updated": "2025-12-10T00:00:00Z",
+  "source": "real",
+  "compass_version": "unknown",
+  "notes": "Initial mock data migrated from bellweaver package"
+}

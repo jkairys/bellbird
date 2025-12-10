@@ -1,0 +1,69 @@
+name: Test Bellweaver
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/bellweaver/**'
+      - 'packages/compass-client/**'
+      - '.github/workflows/test-bellweaver.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/bellweaver/**'
+      - 'packages/compass-client/**'
+      - '.github/workflows/test-bellweaver.yml'
+
+env:
+  COMPASS_MODE: mock
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/bellweaver
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: packages/bellweaver/.venv
+          key: venv-bellweaver-${{ runner.os }}-${{ hashFiles('packages/bellweaver/poetry.lock') }}
+
+      - name: Install compass-client dependency
+        run: |
+          cd ../compass-client
+          poetry install --no-interaction
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install package
+        run: poetry install --no-interaction
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=bellweaver --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/bellweaver/coverage.xml
+          flags: bellweaver
+          fail_ci_if_error: false
