@@ -276,6 +276,7 @@ cd packages/compass-client && poetry run pytest -m "not integration"
 # Run integration tests (requires real Compass credentials)
 cd packages/compass-client && poetry run pytest -m "integration"
 ```
+
 </details>
 
 ### Linting and Formatting
