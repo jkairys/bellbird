@@ -122,10 +122,10 @@
 - [X] T055 [US3] Implement update_schema_version() function in refresh_mock_data.py to update schema_version.json
 - [X] T056 [US3] Add CLI entry point in `packages/compass-client/pyproject.toml` for refresh-mock-data command
 - [X] T057 [US3] Add mock validate CLI command in `packages/bellweaver/bellweaver/cli/commands/mock.py`
-- [ ] T058 [US3] Test mock data refresh: Run `poetry run python -m compass_client.cli refresh-mock-data` with real credentials
-- [ ] T059 [US3] Verify sanitized data: Check that PII is removed from updated compass_user.json and compass_events.json
-- [ ] T060 [US3] Verify updated data validates: Run CompassParser.parse() on refreshed mock data
-- [ ] T061 [US3] Commit updated mock data to repository
+- [X] T058 [US3] Test mock data refresh: Run `poetry run python -m compass_client.cli refresh-mock-data` with real credentials
+- [X] T059 [US3] Verify sanitized data: Check that PII is removed from updated compass_user.json and compass_events.json
+- [X] T060 [US3] Verify updated data validates: Run CompassParser.parse() on refreshed mock data
+- [X] T061 [US3] Commit updated mock data to repository
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work - mock data can be refreshed when API changes
 
