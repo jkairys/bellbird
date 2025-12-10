@@ -10,6 +10,7 @@ from flask import Flask, send_from_directory, abort
 
 from bellweaver.db.database import init_db
 from bellweaver.api.routes import register_routes
+from bellweaver.startup import startup_checks, StartupValidationError
 
 
 def create_app() -> Flask:
@@ -18,6 +19,9 @@ def create_app() -> Flask:
 
     Returns:
         Configured Flask application instance
+
+    Raises:
+        StartupValidationError: If startup validation fails.
     """
     # Determine static folder path (for production Docker build)
     static_folder = Path(__file__).parent.parent / "static"
@@ -27,6 +31,14 @@ def create_app() -> Flask:
         app = Flask(__name__, static_folder=str(static_folder), static_url_path="")
     else:
         app = Flask(__name__)
+
+    # Run startup validation checks
+    compass_mode = os.getenv("COMPASS_MODE")
+    try:
+        startup_checks(compass_mode)
+    except StartupValidationError as e:
+        app.logger.error(f"Startup validation failed: {e}")
+        raise
 
     # Initialize database on startup
     with app.app_context():

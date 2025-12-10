@@ -13,6 +13,10 @@ env_file = Path(__file__).parent.parent / ".env"
 if env_file.exists():
     load_dotenv(env_file)
 
+# Set COMPASS_MODE to mock for all tests (unless explicitly overridden)
+if "COMPASS_MODE" not in os.environ:
+    os.environ["COMPASS_MODE"] = "mock"
+
 
 def pytest_addoption(parser):
     """Add custom command-line options for Compass credentials."""
