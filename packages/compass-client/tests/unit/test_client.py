@@ -1,13 +1,11 @@
-"""Unit tests for CompassClient."""
+"""Unit tests for CompassClient - basic functionality only.
 
-import json
-from unittest.mock import Mock, patch, MagicMock
+Note: Real API integration tests are in tests/integration/test_compass_integration.py
+"""
 
 import pytest
-import requests
 
 from compass_client import CompassClient
-from compass_client.exceptions import CompassAuthenticationError, CompassClientError
 
 
 class TestCompassClientInit:
@@ -36,240 +34,95 @@ class TestCompassClientInit:
         assert "Mozilla" in client.session.headers["User-Agent"]
         assert client.session.headers["Accept-Language"] == "en-AU,en;q=0.9"
 
+    def test_multiple_clients_independent(self):
+        """Test that multiple client instances are independent."""
+        client1 = CompassClient("https://school1.compass.education", "user1", "pass1")
+        client2 = CompassClient("https://school2.compass.education", "user2", "pass2")
 
-class TestCompassClientLogin:
-    """Tests for CompassClient.login() method."""
-
-    @patch("requests.Session")
-    def test_login_success(self, mock_session_class):
-        """Test successful login."""
-        # Setup mock
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock login page response
-        login_response = Mock()
-        login_response.text = """
-        <form>
-            <input name="__VIEWSTATE" value="test_viewstate" />
-            <input name="__VIEWSTATEGENERATOR" value="test_generator" />
-            <input name="__EVENTVALIDATION" value="test_validation" />
-        </form>
-        """
-        login_response.raise_for_status = Mock()
-
-        # Mock post response (successful login)
-        post_response = Mock()
-        post_response.text = "redirect"
-        post_response.raise_for_status = Mock()
-
-        # Configure session mocks
-        mock_session.get.return_value = login_response
-        mock_session.post.return_value = post_response
-
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client.session = mock_session
-
-        result = client.login()
-
-        assert result is True
-        assert mock_session.get.called
-        assert mock_session.post.called
-
-    @patch("requests.Session")
-    def test_login_invalid_credentials(self, mock_session_class):
-        """Test login with invalid credentials."""
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock login page response
-        login_response = Mock()
-        login_response.text = """
-        <form>
-            <input name="__VIEWSTATE" value="test_viewstate" />
-        </form>
-        """
-        login_response.raise_for_status = Mock()
-
-        # Mock post response (failed login)
-        post_response = Mock()
-        post_response.text = "Incorrect username or password"
-        post_response.raise_for_status = Mock()
-
-        mock_session.get.return_value = login_response
-        mock_session.post.return_value = post_response
-
-        client = CompassClient("https://example.compass.education", "user", "wrong_pass")
-        client.session = mock_session
-
-        with pytest.raises(CompassAuthenticationError) as exc_info:
-            client.login()
-
-        assert "Login failed" in str(exc_info.value)
-
-    @patch("requests.Session")
-    def test_login_network_error(self, mock_session_class):
-        """Test login with network error."""
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock network error
-        mock_session.get.side_effect = requests.exceptions.RequestException("Network error")
-
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client.session = mock_session
-
-        with pytest.raises(CompassClientError) as exc_info:
-            client.login()
-
-        assert "Network error" in str(exc_info.value)
-
-
-class TestCompassClientGetUserDetails:
-    """Tests for CompassClient.get_user_details() method."""
-
-    @patch("requests.Session")
-    def test_get_user_details_success(self, mock_session_class):
-        """Test successful retrieval of user details."""
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock API response
-        api_response = Mock()
-        api_response.json.return_value = {
-            "d": {
-                "userId": 12345,
-                "username": "testuser",
-                "firstName": "Test",
-                "lastName": "User",
-            }
-        }
-        api_response.raise_for_status = Mock()
-
-        mock_session.get.return_value = api_response
-
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client.session = mock_session
-        client._authenticated = True
-
-        result = client.get_user_details()
-
-        assert result["userId"] == 12345
-        assert result["username"] == "testuser"
-        assert client.user_id == 12345
-
-    @patch("requests.Session")
-    def test_get_user_details_not_authenticated(self, mock_session_class):
-        """Test get_user_details when not authenticated."""
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client._authenticated = False
-
-        with pytest.raises(CompassClientError) as exc_info:
-            client.get_user_details()
-
-        assert "not authenticated" in str(exc_info.value).lower()
-
-
-class TestCompassClientGetCalendarEvents:
-    """Tests for CompassClient.get_calendar_events() method."""
-
-    @patch("requests.Session")
-    def test_get_calendar_events_success(self, mock_session_class):
-        """Test successful retrieval of calendar events."""
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock API response
-        api_response = Mock()
-        api_response.json.return_value = {
-            "d": [
-                {
-                    "title": "Event 1",
-                    "start": "2025-12-01T09:00:00",
-                    "finish": "2025-12-01T10:00:00",
-                },
-                {
-                    "title": "Event 2",
-                    "start": "2025-12-02T14:00:00",
-                    "finish": "2025-12-02T15:00:00",
-                },
-            ]
-        }
-        api_response.raise_for_status = Mock()
-
-        mock_session.post.return_value = api_response
-
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client.session = mock_session
-        client._authenticated = True
-        client.user_id = 12345
-
-        result = client.get_calendar_events("2025-12-01", "2025-12-31", 100)
-
-        assert len(result) == 2
-        assert result[0]["title"] == "Event 1"
-        assert result[1]["title"] == "Event 2"
-
-    @patch("requests.Session")
-    def test_get_calendar_events_not_authenticated(self, mock_session_class):
-        """Test get_calendar_events when not authenticated."""
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client._authenticated = False
-
-        with pytest.raises(CompassClientError) as exc_info:
-            client.get_calendar_events("2025-12-01", "2025-12-31", 100)
-
-        assert "not authenticated" in str(exc_info.value).lower()
-
-    @patch("requests.Session")
-    def test_get_calendar_events_empty_response(self, mock_session_class):
-        """Test get_calendar_events with empty response."""
-        mock_session = MagicMock()
-        mock_session_class.return_value = mock_session
-
-        # Mock empty API response
-        api_response = Mock()
-        api_response.json.return_value = {"d": []}
-        api_response.raise_for_status = Mock()
-
-        mock_session.post.return_value = api_response
-
-        client = CompassClient("https://example.compass.education", "user", "pass")
-        client.session = mock_session
-        client._authenticated = True
-        client.user_id = 12345
-
-        result = client.get_calendar_events("2025-12-01", "2025-12-31", 100)
-
-        assert result == []
+        assert client1.base_url != client2.base_url
+        assert client1.username != client2.username
+        assert client1.session is not client2.session
 
 
 class TestCompassClientHelpers:
     """Tests for CompassClient helper methods."""
 
     def test_extract_form_fields(self):
-        """Test _extract_form_fields method."""
+        """Test _extract_form_fields method extracts ASP.NET form fields."""
         html = """
         <form>
-            <input name="field1" value="value1" />
-            <input name="field2" value="value2" />
-            <input type="checkbox" name="checkbox1" value="on" />
+            <input name="__VIEWSTATE" value="test_viewstate" />
+            <input name="__VIEWSTATEGENERATOR" value="test_generator" />
+            <input name="__EVENTVALIDATION" value="test_validation" />
+            <input name="username" value="" />
+            <input name="password" value="" />
         </form>
         """
 
         client = CompassClient("https://example.compass.education", "user", "pass")
         result = client._extract_form_fields(html)
 
-        assert "field1" in result
-        assert result["field1"] == "value1"
-        assert "field2" in result
-        assert result["field2"] == "value2"
+        assert "__VIEWSTATE" in result
+        assert result["__VIEWSTATE"] == "test_viewstate"
+        assert "__VIEWSTATEGENERATOR" in result
+        assert result["__VIEWSTATEGENERATOR"] == "test_generator"
+        assert "__EVENTVALIDATION" in result
+        assert result["__EVENTVALIDATION"] == "test_validation"
 
-    def test_extract_form_fields_empty(self):
-        """Test _extract_form_fields with no form fields."""
+    def test_extract_form_fields_no_form(self):
+        """Test _extract_form_fields with no form returns empty dict."""
         html = "<div>No form here</div>"
 
         client = CompassClient("https://example.compass.education", "user", "pass")
         result = client._extract_form_fields(html)
 
         assert result == {}
+
+    def test_extract_form_fields_with_checkboxes(self):
+        """Test _extract_form_fields handles checkbox inputs."""
+        html = """
+        <form>
+            <input type="checkbox" name="rememberMe" value="on" />
+            <input type="text" name="username" value="test" />
+        </form>
+        """
+
+        client = CompassClient("https://example.compass.education", "user", "pass")
+        result = client._extract_form_fields(html)
+
+        assert "rememberMe" in result
+        assert "username" in result
+
+
+class TestCompassClientAuthenticationState:
+    """Tests for authentication state management."""
+
+    def test_initial_state_not_authenticated(self):
+        """Test that client starts in unauthenticated state."""
+        client = CompassClient("https://example.compass.education", "user", "pass")
+        assert client._authenticated is False
+        assert client.user_id is None
+
+    def test_requires_authentication_get_user_details(self):
+        """Test that get_user_details requires authentication."""
+        client = CompassClient("https://example.compass.education", "user", "pass")
+        client._authenticated = False
+
+        from compass_client.exceptions import CompassClientError
+
+        with pytest.raises(CompassClientError) as exc_info:
+            client.get_user_details()
+
+        assert "not authenticated" in str(exc_info.value).lower()
+
+    def test_requires_authentication_get_calendar_events(self):
+        """Test that get_calendar_events requires authentication."""
+        client = CompassClient("https://example.compass.education", "user", "pass")
+        client._authenticated = False
+
+        from compass_client.exceptions import CompassClientError
+
+        with pytest.raises(CompassClientError) as exc_info:
+            client.get_calendar_events("2025-01-01", "2025-12-31", 100)
+
+        assert "not authenticated" in str(exc_info.value).lower()
