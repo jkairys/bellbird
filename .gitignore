@@ -210,9 +210,8 @@ __marimo__/
 !backend/data/.gitkeep
 backend/.venv/
 backend/poetry.lock
-frontend/node_modules/
-frontend/dist/
-frontend/build/
+src/
+!src/
 
 # MCP Browser
 mcp-browser/node_modules/
