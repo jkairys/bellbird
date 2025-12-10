@@ -6,58 +6,107 @@ Bellweaver is a school calendar event aggregation and filtering tool. The MVP fo
 
 ## Current Architecture
 
+### Multi-Package Monorepo Structure
+
+The system is now organized as a **monorepo with two independent Python packages**:
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Local Development Environment                               │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Compass Client (adapters/compass.py)                │   │
-│  │                                                      │   │
-│  │  ├─ HTTP-based authentication                       │   │
-│  │  ├─ Session management with cookies                │   │
-│  │  ├─ Calendar event fetching                        │   │
-│  │  └─ Returns raw event data (dicts)                 │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Mock Client (adapters/compass_mock.py)              │   │
-│  │                                                      │   │
-│  │  ├─ Realistic test data                            │   │
-│  │  ├─ No authentication required                     │   │
-│  │  └─ Same interface as real client                  │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Compass Parser (parsers/compass.py)                 │   │
-│  │                                                      │   │
-│  │  ├─ Raw dict → Pydantic model validation           │   │
-│  │  ├─ Type safety and error handling                 │   │
-│  │  └─ Returns validated domain models                │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ LLM Filter (filtering/llm_filter.py)                │   │
-│  │                                                      │   │
-│  │  ├─ Claude API integration                         │   │
-│  │  ├─ Event relevance filtering                      │   │
-│  │  └─ Event summarization                            │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ Credential Manager (db/credentials.py)              │   │
-│  │                                                      │   │
-│  │  ├─ Fernet encryption                              │   │
-│  │  └─ Secure credential storage                      │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│  compass-client Package (Independent Library)              │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Factory (factory.py)                                 │  │
+│  │  create_client(mode="real"|"mock") → Client         │  │
+│  └──────────────────────────────────────────────────────┘  │
+│         ↓                              ↓                    │
+│  ┌──────────────────┐         ┌──────────────────┐         │
+│  │ CompassClient    │         │ CompassMockClient│         │
+│  │ (client.py)      │         │ (mock_client.py) │         │
+│  │                  │         │                  │         │
+│  │ • HTTP auth      │         │ • JSON files     │         │
+│  │ • Session mgmt   │         │ • No network     │         │
+│  │ • API calls      │         │ • Same interface │         │
+│  │ • Returns dicts  │         │ • Returns dicts  │         │
+│  └──────────────────┘         └──────────────────┘         │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ CompassParser (parser.py)                           │  │
+│  │  • Generic parse() method                           │  │
+│  │  • parse_safe() with error collection               │  │
+│  │  • Dict → Pydantic validation                       │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Pydantic Models (models.py)                         │  │
+│  │  • CompassEvent (37 fields)                         │  │
+│  │  • CompassUser (40 fields)                          │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Mock Data (data/mock/)                              │  │
+│  │  • compass_events.json                              │  │
+│  │  • compass_user.json                                │  │
+│  │  • schema_version.json                              │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+                          ↓ (dependency)
+┌────────────────────────────────────────────────────────────┐
+│  bellweaver Package (Main Application)                     │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ CLI Commands (cli/commands/)                        │  │
+│  │  • compass.py - uses create_client()                │  │
+│  │  • api.py                                           │  │
+│  │  • mock.py                                          │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Flask API (api/)                                    │  │
+│  │  • Routes use create_client()                       │  │
+│  │  • Returns filtered events                          │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Domain Mappers (mappers/compass.py)                │  │
+│  │  • CompassEvent → BellweaverEvent                   │  │
+│  │  • Transforms compass_client models to app models   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ LLM Filter (filtering/llm_filter.py)                │  │
+│  │  • Claude API integration                           │  │
+│  │  • Event relevance filtering                        │  │
+│  │  • Event summarization                              │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │ Database Layer (db/)                                │  │
+│  │  • SQLAlchemy ORM                                   │  │
+│  │  • Credential encryption                            │  │
+│  │  • Event storage                                    │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
 ```
+
+### Key Architectural Benefits
+
+1. **Decoupled Packages**: compass-client can be developed, tested, and versioned independently
+2. **Mock Mode**: Full development without Compass credentials via `COMPASS_MODE=mock`
+3. **CI-Friendly**: Tests run in mock mode, avoiding geo-blocking issues
+4. **Clear Boundaries**: API client logic completely separated from application logic
+5. **Reusability**: compass-client can be used by other projects
 
 ## Implemented Components
 
-### 1. Compass Client (HTTP-based)
+### 1. compass-client Package (Independent Library)
 
-**File:** `packages/bellweaver/bellweaver/adapters/compass.py`
+**Location:** `packages/compass-client/`
+
+The compass-client package is a **standalone, independently testable library** that provides Compass Education API integration.
+
+#### CompassClient (Real API)
+
+**File:** `packages/compass-client/compass_client/client.py`
 
 **Features:**
 
@@ -84,27 +133,58 @@ Bellweaver is a school calendar event aggregation and filtering tool. The MVP fo
 - Lower resource usage
 - Better Cloudflare bypass than browser automation
 
-### 2. Mock Client
+#### CompassMockClient (Mock Data)
 
-**File:** `packages/bellweaver/bellweaver/adapters/compass_mock.py`
+**File:** `packages/compass-client/compass_client/mock_client.py`
 
 **Features:**
 
-- Realistic synthetic calendar events
+- Realistic synthetic calendar events from JSON files
 - No authentication required
 - Identical interface to real Compass client
 - Supports development without credentials
+- Committed mock data for reproducible testing
+
+**Mock Data Location:** `packages/compass-client/data/mock/`
+- `compass_events.json` - Sample calendar events
+- `compass_user.json` - Sample user profile
+- `schema_version.json` - Schema metadata
 
 **Use Cases:**
 
-- Testing filtering logic
+- Local development without Compass credentials
+- CI/CD testing in geo-blocked environments
 - Frontend development
-- CI/CD pipelines
 - Demonstrating functionality
+- Regression testing
 
-### 3. Compass Parser
+#### Factory Pattern
 
-**File:** `packages/bellweaver/bellweaver/parsers/compass.py`
+**File:** `packages/compass-client/compass_client/factory.py`
+
+**Function:** `create_client(base_url, username, password, mode=None)`
+
+**Mode Selection:**
+1. Explicit `mode` parameter (highest priority)
+2. `COMPASS_MODE` environment variable
+3. Default: `"real"`
+
+**Example:**
+
+```python
+from compass_client import create_client
+
+# Auto-select based on COMPASS_MODE env var
+client = create_client(base_url, username, password)
+
+# Explicit override
+client = create_client(..., mode="mock")  # Force mock
+client = create_client(..., mode="real")  # Force real
+```
+
+#### CompassParser (Generic Validation)
+
+**File:** `packages/compass-client/compass_client/parser.py`
 
 **Features:**
 
@@ -116,35 +196,66 @@ Bellweaver is a school calendar event aggregation and filtering tool. The MVP fo
 **Architecture Pattern:**
 
 ```
-Raw API → Adapter (dicts) → Parser (Pydantic) → Application
+Raw API → Client (dicts) → Parser (Pydantic) → Application
 ```
 
 **Key Methods:**
 
-- `parse(model, raw)` - Generic method that parses any Pydantic model (single or list)
-- `parse_safe(model, raw_list)` - Parse list with partial success handling
+- `parse(model, raw)` - Generic static method that parses any Pydantic model (single or list)
+- `parse_safe(model, raw_list, skip_invalid)` - Parse list with error collection
 
 **Generic Design:**
 
-Uses Python `TypeVar` to provide a single, scalable interface instead of separate methods for each model type. Simply pass the model class and raw data:
+Uses Python `TypeVar` to provide a single, scalable interface:
 
 ```python
+from compass_client import CompassParser, CompassEvent, CompassUser
+
 # Parse events
 events = CompassParser.parse(CompassEvent, raw_events_list)
+
 # Parse user
 user = CompassParser.parse(CompassUser, raw_user_dict)
+
 # Safe parsing with error collection
-valid_events, errors = CompassParser.parse_safe(CompassEvent, raw_events_list)
+valid_events, errors = CompassParser.parse_safe(
+    CompassEvent,
+    raw_events_list,
+    skip_invalid=True
+)
 ```
 
 **Benefits:**
 
-1. **Separation of Concerns** - Adapter handles HTTP, parser handles validation
+1. **Separation of Concerns** - Client handles HTTP, parser handles validation
 2. **Scalability** - Single generic interface works with any Pydantic model
 3. **Flexibility** - Can work with raw dicts or validated models
 4. **Error Handling** - Clear distinction between network and validation errors
 5. **Testing** - Independent testing of HTTP layer and validation layer
 6. **Type Safety** - Full IDE autocomplete with Python generics
+
+#### Pydantic Models
+
+**File:** `packages/compass-client/compass_client/models.py`
+
+- `CompassEvent` - Calendar event model (37 fields)
+- `CompassUser` - User profile model (40 fields)
+
+All models are validated using Pydantic for type safety and runtime validation.
+
+### 2. bellweaver Package (Main Application)
+
+**Location:** `packages/bellweaver/`
+
+The bellweaver package is the main application that **consumes** compass-client as a dependency.
+
+#### Domain Mappers
+
+**File:** `packages/bellweaver/bellweaver/mappers/compass.py`
+
+- Transforms `CompassEvent` → Bellweaver domain models
+- Handles field mapping and data normalization
+- Keeps application logic decoupled from Compass API structure
 
 ### 4. LLM Filter
 
