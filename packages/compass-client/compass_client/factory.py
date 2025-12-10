@@ -17,6 +17,7 @@ def create_client(
     username: str,
     password: str,
     mode: Optional[str] = None,
+    mock_data_dir: Optional[str] = None,
 ) -> Union[CompassClient, CompassMockClient]:
     """
     Create a Compass client instance.
@@ -35,6 +36,7 @@ def create_client(
         username: Compass username
         password: Compass password
         mode: Client mode: "real" or "mock" (optional)
+        mock_data_dir: Custom directory for mock data files (only used when mode="mock")
 
     Returns:
         CompassClient for real mode, CompassMockClient for mock mode
@@ -51,12 +53,19 @@ def create_client(
         >>>
         >>> # Use real mode
         >>> client = create_client(base_url, username, password, mode="real")
+        >>>
+        >>> # Use mock mode with custom data directory
+        >>> client = create_client(base_url, username, password, mode="mock", mock_data_dir="/path/to/data")
     """
     effective_mode = mode or os.getenv("COMPASS_MODE", "real")
     effective_mode = effective_mode.lower().strip()
 
+    # Handle empty string as default to "real"
+    if not effective_mode:
+        effective_mode = "real"
+
     if effective_mode == "mock":
-        return CompassMockClient(base_url, username, password)
+        return CompassMockClient(base_url, username, password, mock_data_dir=mock_data_dir)
     elif effective_mode == "real":
         return CompassClient(base_url, username, password)
     else:

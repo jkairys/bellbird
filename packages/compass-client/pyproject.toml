@@ -11,6 +11,11 @@ python = ">=3.10,<4.0"
 requests = "^2.32.5"
 beautifulsoup4 = "^4.12.0"
 pydantic = "^2.0.0"
+typer = "^0.15.4"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.scripts]
+compass-client = "compass_client.cli.main:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -37,3 +42,6 @@ disallow_untyped_defs = false
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v --tb=short"
+markers = [
+    "integration: marks tests as integration tests requiring real API access (deselect with '-m \"not integration\"')",
+]

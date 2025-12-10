@@ -344,6 +344,8 @@ For detailed information, see:
 ## Active Technologies
 - Python 3.10+ + Flask (web framework), SQLAlchemy 2.0 (ORM), Typer (CLI), Pydantic (validation), React 18 (frontend), Vite (build tool) (001-family-management)
 - SQLite with SQLAlchemy ORM (local-first, PostgreSQL-ready patterns) (001-family-management)
+- Python 3.11 (Poetry-managed) (002-compass-api-decoupling)
+- SQLite with SQLAlchemy ORM (Bellweaver), JSON files for mock data (Compass package) (002-compass-api-decoupling)
 
 ## Recent Changes
 - 001-family-management: Added Python 3.10+ + Flask (web framework), SQLAlchemy 2.0 (ORM), Typer (CLI), Pydantic (validation), React 18 (frontend), Vite (build tool)

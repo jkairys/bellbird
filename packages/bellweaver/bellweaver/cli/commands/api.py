@@ -53,8 +53,8 @@ def serve(
     else:
         typer.echo("Debug mode: OFF")
 
-    app = create_app()
-    app.run(debug=debug, host=host, port=port, use_reloader=debug)
+    flask_app = create_app()
+    flask_app.run(debug=debug, host=host, port=port, use_reloader=debug)
 
 
 if __name__ == "__main__":

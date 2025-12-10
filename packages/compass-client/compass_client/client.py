@@ -121,18 +121,20 @@ class CompassClient:
             html_content: HTML content of the login page
 
         Returns:
-            Dictionary of form field names and values
+            Dictionary of form field names and values (empty dict if no form found)
         """
         soup = BeautifulSoup(html_content, "html.parser")
         form_data = {}
 
         form = soup.find("form")
-        if form:
-            for input_field in form.find_all("input"):
-                name = input_field.get("name")
-                value = input_field.get("value", "")
-                if name:
-                    form_data[name] = value
+        if not form:
+            return {}
+
+        for input_field in form.find_all("input"):
+            name = input_field.get("name")
+            value = input_field.get("value", "")
+            if name:
+                form_data[name] = value
 
         if "__EVENTTARGET" not in form_data:
             form_data["__EVENTTARGET"] = "button1"

@@ -8,6 +8,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 
 from bellweaver.adapters.mock_data import collect_compass_data
+from compass_client.mock_validator import load_and_validate_mock_data
 
 app = typer.Typer(help="Manage mock data for development and testing")
 
@@ -86,4 +87,42 @@ def update_mock_data(
         raise typer.Exit(1)
     except Exception as e:
         typer.secho(f"\n✗ Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+
+@app.command("validate")
+def validate_mock_data():
+    """
+    Validate mock data schema and structure.
+
+    This command:
+    1. Loads mock data files from packages/compass-client/data/mock/
+    2. Validates JSON structure against Compass API models
+    3. Reports validation errors or success
+
+    Useful after refreshing mock data to ensure it's valid.
+    """
+    typer.echo("Validating mock data...")
+    typer.echo("")
+
+    try:
+        user_data, events_data, version_info = load_and_validate_mock_data()
+
+        typer.secho("✓ Mock data is valid!", fg=typer.colors.GREEN, bold=True)
+        typer.echo(f"\nUser Data:")
+        typer.echo(f"  Fields: {len(user_data)}")
+
+        typer.echo(f"\nCalendar Events:")
+        typer.echo(f"  Total events: {len(events_data)}")
+
+        typer.echo(f"\nSchema Version:")
+        typer.echo(f"  Last updated: {version_info.get('last_updated', 'N/A')}")
+        typer.echo(f"  Compass API version: {version_info.get('compass_api_version', 'N/A')}")
+
+    except Exception as e:
+        typer.secho(
+            f"✗ Validation failed: {e}",
+            fg=typer.colors.RED,
+            err=True,
+        )
         raise typer.Exit(1)

@@ -113,19 +113,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T049 [P] [US3] Create cli module in `packages/compass-client/compass_client/cli/__init__.py`
-- [ ] T050 [US3] Create refresh_mock_data.py in `packages/compass-client/compass_client/cli/refresh_mock_data.py` with CLI command
-- [ ] T051 [US3] Implement fetch_real_data() function in refresh_mock_data.py to authenticate and fetch from real API
-- [ ] T052 [US3] Implement sanitize_user_data() function in refresh_mock_data.py to remove PII from user data
-- [ ] T053 [US3] Implement sanitize_event_data() function in refresh_mock_data.py to remove PII from event data
-- [ ] T054 [US3] Implement write_mock_data() function in refresh_mock_data.py to write sanitized data to JSON files
-- [ ] T055 [US3] Implement update_schema_version() function in refresh_mock_data.py to update schema_version.json
-- [ ] T056 [US3] Add CLI entry point in `packages/compass-client/pyproject.toml` for refresh-mock-data command
-- [ ] T057 [US3] Add mock validate CLI command in `packages/bellweaver/bellweaver/cli/commands/mock.py`
-- [ ] T058 [US3] Test mock data refresh: Run `poetry run python -m compass_client.cli refresh-mock-data` with real credentials
-- [ ] T059 [US3] Verify sanitized data: Check that PII is removed from updated compass_user.json and compass_events.json
-- [ ] T060 [US3] Verify updated data validates: Run CompassParser.parse() on refreshed mock data
-- [ ] T061 [US3] Commit updated mock data to repository
+- [X] T049 [P] [US3] Create cli module in `packages/compass-client/compass_client/cli/__init__.py`
+- [X] T050 [US3] Create refresh_mock_data.py in `packages/compass-client/compass_client/cli/refresh_mock_data.py` with CLI command
+- [X] T051 [US3] Implement fetch_real_data() function in refresh_mock_data.py to authenticate and fetch from real API
+- [X] T052 [US3] Implement sanitize_user_data() function in refresh_mock_data.py to remove PII from user data
+- [X] T053 [US3] Implement sanitize_event_data() function in refresh_mock_data.py to remove PII from event data
+- [X] T054 [US3] Implement write_mock_data() function in refresh_mock_data.py to write sanitized data to JSON files
+- [X] T055 [US3] Implement update_schema_version() function in refresh_mock_data.py to update schema_version.json
+- [X] T056 [US3] Add CLI entry point in `packages/compass-client/pyproject.toml` for refresh-mock-data command
+- [X] T057 [US3] Add mock validate CLI command in `packages/bellweaver/bellweaver/cli/commands/mock.py`
+- [X] T058 [US3] Test mock data refresh: Run `poetry run python -m compass_client.cli refresh-mock-data` with real credentials
+- [X] T059 [US3] Verify sanitized data: Check that PII is removed from updated compass_user.json and compass_events.json
+- [X] T060 [US3] Verify updated data validates: Run CompassParser.parse() on refreshed mock data
+- [X] T061 [US3] Commit updated mock data to repository
 
 **Checkpoint**: At this point, User Stories 1, 2, AND 3 should all work - mock data can be refreshed when API changes
 
@@ -139,17 +139,17 @@
 
 ### Implementation for User Story 4
 
-- [ ] T062 [US4] Configure path-based workflow filters in `.github/workflows/test-compass.yml`
-- [ ] T063 [US4] Add paths filter for compass-client in test-compass.yml: packages/compass-client/**
-- [ ] T064 [US4] Add dorny/paths-filter@v3 action to detect-changes job in test-compass.yml
-- [ ] T065 [US4] Create conditional job execution in test-compass.yml based on paths-filter output
-- [ ] T066 [US4] Add compass-library-skipped dummy job in test-compass.yml for required status checks
-- [ ] T067 [US4] Update test-compass.yml to run compass-client tests only when compass-client code changes
-- [ ] T068 [US4] Configure bellweaver workflow to always run (current behavior maintained)
-- [ ] T069 [US4] Test path filtering: Create PR with bellweaver-only changes and verify compass tests are skipped
-- [ ] T070 [US4] Test path filtering: Create PR with compass-client changes and verify compass tests run
-- [ ] T071 [US4] Configure branch protection rules to accept either test-compass or compass-library-skipped
-- [ ] T072 [US4] Measure CI time savings: Compare workflow durations before and after selective execution
+- [X] T062 [US4] Configure path-based workflow filters in `.github/workflows/test-compass.yml`
+- [X] T063 [US4] Add paths filter for compass-client in test-compass.yml: packages/compass-client/**
+- [X] T064 [US4] Add dorny/paths-filter@v3 action to detect-changes job in test-compass.yml
+- [X] T065 [US4] Create conditional job execution in test-compass.yml based on paths-filter output
+- [X] T066 [US4] Add compass-library-skipped dummy job in test-compass.yml for required status checks
+- [X] T067 [US4] Update test-compass.yml to run compass-client tests only when compass-client code changes
+- [X] T068 [US4] Configure bellweaver workflow to always run (current behavior maintained)
+- [X] T069 [US4] Test path filtering: Create PR with bellweaver-only changes and verify compass tests are skipped
+- [X] T070 [US4] Test path filtering: Create PR with compass-client changes and verify compass tests run
+- [X] T071 [US4] Configure branch protection rules to accept either test-compass or compass-library-skipped
+- [X] T072 [US4] Measure CI time savings: Compare workflow durations before and after selective execution
 
 **Checkpoint**: All user stories should now be independently functional - CI is optimized to run only necessary tests
 
