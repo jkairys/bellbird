@@ -30,6 +30,7 @@ docker exec -it bellweaver bellweaver compass sync
 - Python 3.10+ (currently using 3.12.9)
 - Poetry for dependency management
 - Node.js 20+ (for frontend development)
+- [Task](https://taskfile.dev) - Task runner (optional but recommended)
 
 ## First Time Setup
 
@@ -59,7 +60,14 @@ docker exec -it bellweaver bellweaver compass sync
     ```
     **Note**: In mock mode, the credential values don't matter (they're not used), but they are required by the client interface.
 
-4.  **Install Python packages**:
+4.  **Install all dependencies**:
+
+    **Option A: Using Task (Recommended)**
+    ```bash
+    task setup
+    ```
+
+    **Option B: Manual Installation**
     ```bash
     # Install compass-client package first
     cd packages/compass-client
@@ -68,10 +76,8 @@ docker exec -it bellweaver bellweaver compass sync
     # Install bellweaver package (includes compass-client as a path dependency)
     cd ../bellweaver
     poetry install --with dev
-    ```
 
-5.  **Install Frontend dependencies**:
-    ```bash
+    # Install frontend dependencies
     cd ../../frontend
     npm install
     ```
@@ -109,7 +115,16 @@ npm run dev
 
 ## Running Tests
 
-### Python Packages
+### Using Task (Recommended)
+
+From the project root:
+
+```bash
+task test              # Run all tests across all packages
+task test:unit         # Run unit tests only (excludes integration tests)
+```
+
+### Manual Testing
 
 Navigate to the respective package directory to run tests:
 
@@ -117,49 +132,63 @@ Navigate to the respective package directory to run tests:
 # Test bellweaver package (uses mock compass-client by default)
 cd packages/bellweaver && poetry run pytest -v
 
-# Test compass-client package
-cd packages/compass-client && poetry run pytest -v
-```
+# Test compass-client package (unit tests only)
+cd packages/compass-client && poetry run pytest -v -m "not integration"
 
-### Frontend
-
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Run frontend tests (if applicable)
-npm test
+# Run integration tests (requires real API access)
+cd packages/compass-client && poetry run pytest -v -m "integration"
 ```
 
 ## Development Commands
 
-Run development commands from the respective package directory:
+### Using Task (Recommended)
 
-### Python Packages (from `packages/bellweaver/` or `packages/compass-client/`)
+From the project root:
 
 ```bash
-# Format code (Black)
-poetry run black .
+# Development workflow
+task dev                    # Start both frontend and backend dev servers
+task format                 # Run formatters with auto-fix (ruff --fix, black)
+task lint                   # Run all linters (ruff, flake8, mypy)
+task test                   # Run all tests
+task clean                  # Clean build artifacts and caches
 
-# Lint code (Flake8)
-poetry run flake8 .
+# Package-specific commands
+task backend:format         # Format both backend packages
+task backend:lint           # Lint both backend packages
+task frontend:dev           # Start only frontend dev server
+task backend:serve          # Start only backend API server
+```
 
-# Type check (mypy)
-poetry run mypy .
+### Manual Commands
+
+Run development commands from the respective package directory:
+
+#### Python Packages (from `packages/bellweaver/` or `packages/compass-client/`)
+
+```bash
+# Format code
+poetry run ruff check --fix .       # Auto-fix with ruff
+poetry run black .                  # Format with black
+
+# Lint code
+poetry run ruff check .             # Check with ruff
+poetry run flake8 .                 # Check with flake8
+poetry run mypy .                   # Type check with mypy
 
 # Install new packages
 poetry add package-name                # Production
 poetry add --group dev package-name    # Development only
 ```
 
-### Frontend (from `frontend/`)
+#### Frontend (from `frontend/`)
 
 ```bash
-# Lint and format
-npm run lint
+# Start dev server
+npm run dev
 
-# Run tests
-npm test
+# Build for production
+npm run build
 ```
 
 ## Project Structure

@@ -57,9 +57,10 @@ osascript -e 'display notification "Waiting for your input" with title "Claude C
 
 ### Development Tools
 
+- **Task Runner**: Task (Taskfile.yml)
 - **Testing**: pytest + pytest-cov
-- **Formatting**: black
-- **Linting**: flake8
+- **Formatting**: black, ruff
+- **Linting**: ruff, flake8
 - **Type Checking**: mypy
 
 ## Environment & Configuration
@@ -124,6 +125,43 @@ cd packages/bellweaver && poetry run bellweaver api serve     # Start API server
 # compass-client specific commands (run from packages/compass-client/)
 cd packages/compass-client && poetry run python -m compass_client.cli refresh-mock-data # Refresh mock data
 cd packages/compass-client && poetry run python -m compass_client.cli mock validate     # Validate mock data
+```
+
+### Task Runner Commands
+
+The project uses [Task](https://taskfile.dev) (a Make alternative) to standardize development workflows. All task commands should be run from the project root:
+
+```bash
+# First time setup - installs all dependencies
+task setup
+
+# Development workflow
+task dev                    # Start both frontend and backend dev servers concurrently
+task test                   # Run all tests across all packages
+task test:unit              # Run unit tests only (excludes integration tests)
+task lint                   # Run all linters (ruff, flake8, mypy)
+task format                 # Run formatters with auto-fix (ruff --fix, black)
+task clean                  # Clean all build artifacts and caches
+
+# Frontend-specific tasks
+task frontend:install       # npm install
+task frontend:dev           # Start Vite dev server
+task frontend:build         # Production build
+
+# Backend-specific tasks
+task backend:install        # Install both packages with Poetry
+task backend:test           # Run tests for both packages
+task backend:lint           # Lint both packages
+task backend:format         # Format both packages
+task backend:serve          # Start Flask API server
+
+# Individual package tasks
+task backend:bellweaver:test
+task backend:bellweaver:lint
+task backend:bellweaver:format
+task backend:compass-client:test
+task backend:compass-client:test:integration
+task backend:compass-client:refresh-mock
 ```
 
 ### Docker Commands
