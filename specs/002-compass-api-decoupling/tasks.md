@@ -98,10 +98,10 @@
 - [X] T044 [US2] Update test fixtures in `packages/bellweaver/tests/conftest.py` to set COMPASS_MODE=mock
 - [X] T045 [US2] Update bellweaver test workflow in `.github/workflows/test-bellweaver.yml` to set COMPASS_MODE=mock
 - [X] T046 [US2] Configure path filters in test-bellweaver.yml: packages/bellweaver/** and packages/compass-client/**
-- [ ] T047 [US2] Test CI pipeline: Create PR and verify bellweaver tests run with mock mode in GitHub Actions
-- [ ] T048 [US2] Verify zero authentication failures in CI logs
+- [X] T047 [US2] Test CI pipeline: Create PR and verify bellweaver tests run with mock mode in GitHub Actions
+- [X] T048 [US2] Verify zero authentication failures in CI logs
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work - local dev uses mock data AND CI runs without geo-blocking
+**Checkpoint**: ✅ At this point, User Stories 1 AND 2 should both work - local dev uses mock data AND CI runs without geo-blocking
 
 ---
 
