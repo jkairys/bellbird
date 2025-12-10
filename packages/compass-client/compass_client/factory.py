@@ -69,6 +69,4 @@ def create_client(
     elif effective_mode == "real":
         return CompassClient(base_url, username, password)
     else:
-        raise ValueError(
-            f"Invalid COMPASS_MODE: '{effective_mode}'. Must be 'real' or 'mock'."
-        )
+        raise ValueError(f"Invalid COMPASS_MODE: '{effective_mode}'. Must be 'real' or 'mock'.")

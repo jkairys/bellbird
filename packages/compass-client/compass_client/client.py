@@ -100,7 +100,9 @@ class CompassClient:
             response.raise_for_status()
 
             if "login.aspx" in response.url.lower():
-                raise CompassAuthenticationError("Login failed: Invalid credentials or server error")
+                raise CompassAuthenticationError(
+                    "Login failed: Invalid credentials or server error"
+                )
 
             self._extract_session_metadata(response.text)
 

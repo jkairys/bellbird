@@ -29,7 +29,9 @@ class TestMockValidatorMissingFiles:
             tmpdir = Path(tmpdir)
 
             # Create user and version files
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="compass_events.json"):
@@ -54,7 +56,9 @@ class TestMockValidatorMissingFiles:
 
             # Create events and user files
             (tmpdir / "compass_events.json").write_text("[]")
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
 
             with pytest.raises(MockDataValidationError, match="schema_version.json"):
                 validate_mock_data_schema(tmpdir)
@@ -69,7 +73,9 @@ class TestMockValidatorInvalidJSON:
             tmpdir = Path(tmpdir)
 
             (tmpdir / "compass_events.json").write_text("not valid json{")
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="Invalid JSON"):
@@ -97,7 +103,9 @@ class TestMockValidatorWrongDataTypes:
             tmpdir = Path(tmpdir)
 
             (tmpdir / "compass_events.json").write_text('{"not": "array"}')
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="must contain a JSON array"):
@@ -109,7 +117,7 @@ class TestMockValidatorWrongDataTypes:
             tmpdir = Path(tmpdir)
 
             (tmpdir / "compass_events.json").write_text("[]")
-            (tmpdir / "compass_user.json").write_text('[1, 2, 3]')
+            (tmpdir / "compass_user.json").write_text("[1, 2, 3]")
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="must contain a JSON object"):
@@ -121,8 +129,10 @@ class TestMockValidatorWrongDataTypes:
             tmpdir = Path(tmpdir)
 
             (tmpdir / "compass_events.json").write_text("[]")
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
-            (tmpdir / "schema_version.json").write_text('[1, 2, 3]')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
+            (tmpdir / "schema_version.json").write_text("[1, 2, 3]")
 
             with pytest.raises(MockDataValidationError, match="must contain a JSON object"):
                 validate_mock_data_schema(tmpdir)
@@ -137,7 +147,9 @@ class TestMockValidatorMissingRequiredFields:
             tmpdir = Path(tmpdir)
 
             (tmpdir / "compass_events.json").write_text("[]")
-            (tmpdir / "compass_user.json").write_text('{"userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userFirstName": "Test", "userLastName": "User"}'
+            )
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="missing required fields"):
@@ -150,7 +162,9 @@ class TestMockValidatorMissingRequiredFields:
 
             event = {"finish": "2025-12-15T09:00:00", "title": "Test"}
             (tmpdir / "compass_events.json").write_text(json.dumps([event]))
-            (tmpdir / "compass_user.json").write_text('{"userId": 1, "userFirstName": "Test", "userLastName": "User"}')
+            (tmpdir / "compass_user.json").write_text(
+                '{"userId": 1, "userFirstName": "Test", "userLastName": "User"}'
+            )
             (tmpdir / "schema_version.json").write_text('{"version": "1.0", "api_version": "1.0"}')
 
             with pytest.raises(MockDataValidationError, match="missing required fields"):

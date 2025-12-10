@@ -215,10 +215,14 @@ class TestCompassMockClientInterface:
 
         # Get public methods (not starting with _)
         mock_methods = {
-            name for name in dir(mock_client) if not name.startswith("_") and callable(getattr(mock_client, name))
+            name
+            for name in dir(mock_client)
+            if not name.startswith("_") and callable(getattr(mock_client, name))
         }
         real_methods = {
-            name for name in dir(real_client) if not name.startswith("_") and callable(getattr(real_client, name))
+            name
+            for name in dir(real_client)
+            if not name.startswith("_") and callable(getattr(real_client, name))
         }
 
         # Core interface methods that must match

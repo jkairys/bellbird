@@ -28,12 +28,14 @@ if env_path.exists():
 
 # Skip all tests in this module if credentials not available
 pytestmark = pytest.mark.skipif(
-    not all([
-        os.getenv("COMPASS_BASE_URL"),
-        os.getenv("COMPASS_USERNAME"),
-        os.getenv("COMPASS_PASSWORD"),
-    ]),
-    reason="Compass credentials not available in environment or .env file"
+    not all(
+        [
+            os.getenv("COMPASS_BASE_URL"),
+            os.getenv("COMPASS_USERNAME"),
+            os.getenv("COMPASS_PASSWORD"),
+        ]
+    ),
+    reason="Compass credentials not available in environment or .env file",
 )
 
 
@@ -101,7 +103,10 @@ class TestCompassClientAuthentication:
         with pytest.raises(CompassAuthenticationError) as exc_info:
             client.login()
 
-        assert "login failed" in str(exc_info.value).lower() or "incorrect" in str(exc_info.value).lower()
+        assert (
+            "login failed" in str(exc_info.value).lower()
+            or "incorrect" in str(exc_info.value).lower()
+        )
 
 
 @pytest.mark.integration
@@ -160,9 +165,7 @@ class TestCompassClientCalendarEvents:
         end_date = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
 
         events_data = authenticated_client.get_calendar_events(
-            start_date=start_date,
-            end_date=end_date,
-            limit=10
+            start_date=start_date, end_date=end_date, limit=10
         )
 
         # Verify structure of real API response
@@ -182,9 +185,7 @@ class TestCompassClientCalendarEvents:
         end_date = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
 
         events_data = authenticated_client.get_calendar_events(
-            start_date=start_date,
-            end_date=end_date,
-            limit=5
+            start_date=start_date, end_date=end_date, limit=5
         )
 
         # Parse into Pydantic models (use safe mode to handle any schema variations)
@@ -211,9 +212,7 @@ class TestCompassClientCalendarEvents:
         end_date = "2099-01-31"
 
         events_data = authenticated_client.get_calendar_events(
-            start_date=start_date,
-            end_date=end_date,
-            limit=100
+            start_date=start_date, end_date=end_date, limit=100
         )
 
         # Should return empty list, not error
@@ -229,9 +228,7 @@ class TestCompassClientCalendarEvents:
         # Note: The Compass API accepts the limit parameter but may not enforce it
         # This test verifies the client can send the parameter without error
         events_data = authenticated_client.get_calendar_events(
-            start_date=start_date,
-            end_date=end_date,
-            limit=limit
+            start_date=start_date, end_date=end_date, limit=limit
         )
 
         # Should return list (API may return more than limit)

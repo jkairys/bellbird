@@ -28,9 +28,9 @@ def main():
         action="store_true",
         help="Skip PII sanitization (NOT recommended)",
     )
-    
+
     args = parser.parse_args()
-    
+
     try:
         refresh_mock_data(
             username=args.username,

@@ -343,9 +343,7 @@ class CompassMockClient:
                     continue
 
                 if "T" in event_start_str:
-                    event_start = datetime.fromisoformat(
-                        event_start_str.replace("Z", "+00:00")
-                    )
+                    event_start = datetime.fromisoformat(event_start_str.replace("Z", "+00:00"))
                 else:
                     event_start = datetime.strptime(event_start_str, "%Y-%m-%d")
 

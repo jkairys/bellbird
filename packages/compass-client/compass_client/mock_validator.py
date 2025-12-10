@@ -46,9 +46,7 @@ def load_and_validate_mock_data(
 
     # Validate directory exists
     if not mock_data_dir.exists():
-        raise MockDataValidationError(
-            f"Mock data directory does not exist: {mock_data_dir}"
-        )
+        raise MockDataValidationError(f"Mock data directory does not exist: {mock_data_dir}")
 
     # Load and validate each required file
     events = _load_and_validate_events(mock_data_dir)
@@ -89,21 +87,15 @@ def _load_and_validate_events(mock_data_dir: Path) -> List[Dict[str, Any]]:
     events_file = mock_data_dir / "compass_events.json"
 
     if not events_file.exists():
-        raise MockDataValidationError(
-            f"Mock events file not found: {events_file}"
-        )
+        raise MockDataValidationError(f"Mock events file not found: {events_file}")
 
     try:
         with open(events_file, "r") as f:
             events = json.load(f)
     except json.JSONDecodeError as e:
-        raise MockDataValidationError(
-            f"Invalid JSON in {events_file}: {e}"
-        )
+        raise MockDataValidationError(f"Invalid JSON in {events_file}: {e}")
     except IOError as e:
-        raise MockDataValidationError(
-            f"Cannot read {events_file}: {e}"
-        )
+        raise MockDataValidationError(f"Cannot read {events_file}: {e}")
 
     if not isinstance(events, list):
         raise MockDataValidationError(
@@ -113,9 +105,7 @@ def _load_and_validate_events(mock_data_dir: Path) -> List[Dict[str, Any]]:
     # Validate each event has required fields
     for i, event in enumerate(events):
         if not isinstance(event, dict):
-            raise MockDataValidationError(
-                f"Event {i} in compass_events.json is not a dictionary"
-            )
+            raise MockDataValidationError(f"Event {i} in compass_events.json is not a dictionary")
 
         required_fields = {"start", "finish", "title"}
         missing_fields = required_fields - set(event.keys())
@@ -132,21 +122,15 @@ def _load_and_validate_user(mock_data_dir: Path) -> Dict[str, Any]:
     user_file = mock_data_dir / "compass_user.json"
 
     if not user_file.exists():
-        raise MockDataValidationError(
-            f"Mock user file not found: {user_file}"
-        )
+        raise MockDataValidationError(f"Mock user file not found: {user_file}")
 
     try:
         with open(user_file, "r") as f:
             user = json.load(f)
     except json.JSONDecodeError as e:
-        raise MockDataValidationError(
-            f"Invalid JSON in {user_file}: {e}"
-        )
+        raise MockDataValidationError(f"Invalid JSON in {user_file}: {e}")
     except IOError as e:
-        raise MockDataValidationError(
-            f"Cannot read {user_file}: {e}"
-        )
+        raise MockDataValidationError(f"Cannot read {user_file}: {e}")
 
     if not isinstance(user, dict):
         raise MockDataValidationError(
@@ -171,21 +155,15 @@ def _load_and_validate_schema_version(
     version_file = mock_data_dir / "schema_version.json"
 
     if not version_file.exists():
-        raise MockDataValidationError(
-            f"Mock schema version file not found: {version_file}"
-        )
+        raise MockDataValidationError(f"Mock schema version file not found: {version_file}")
 
     try:
         with open(version_file, "r") as f:
             version = json.load(f)
     except json.JSONDecodeError as e:
-        raise MockDataValidationError(
-            f"Invalid JSON in {version_file}: {e}"
-        )
+        raise MockDataValidationError(f"Invalid JSON in {version_file}: {e}")
     except IOError as e:
-        raise MockDataValidationError(
-            f"Cannot read {version_file}: {e}"
-        )
+        raise MockDataValidationError(f"Cannot read {version_file}: {e}")
 
     if not isinstance(version, dict):
         raise MockDataValidationError(

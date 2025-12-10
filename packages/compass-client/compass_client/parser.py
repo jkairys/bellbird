@@ -27,7 +27,7 @@ Example usage:
     >>> print(user.user_full_name)
 """
 
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, List, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 

@@ -65,9 +65,7 @@ class CompassEvent(BaseModel):
     in_class_status: Optional[int] = Field(alias="inClassStatus", default=None)
     instance_id: str = Field(alias="instanceId")
     is_recurring: bool = Field(alias="isRecurring")
-    learning_task_activity_id: Optional[int] = Field(
-        alias="learningTaskActivityId", default=None
-    )
+    learning_task_activity_id: Optional[int] = Field(alias="learningTaskActivityId", default=None)
     learning_task_id: Optional[int] = Field(alias="learningTaskId", default=None)
     lesson_plan_configured: bool = Field(alias="lessonPlanConfigured")
     location: Optional[str] = Field(default=None)
@@ -112,9 +110,7 @@ class CompassUser(BaseModel):
     has_email_restriction: bool = Field(alias="hasEmailRestriction")
     is_birthday: bool = Field(alias="isBirthday")
     user_act_student_id: Optional[str] = Field(alias="userACTStudentID", default=None)
-    user_access_restrictions: Optional[str] = Field(
-        alias="userAccessRestrictions", default=None
-    )
+    user_access_restrictions: Optional[str] = Field(alias="userAccessRestrictions", default=None)
     user_compass_person_id: str = Field(alias="userCompassPersonId")
     user_confirmation_photo_path: str = Field(alias="userConfirmationPhotoPath")
     user_details: Optional[str] = Field(alias="userDetails", default=None)
@@ -142,9 +138,7 @@ class CompassUser(BaseModel):
     user_square_photo_path: str = Field(alias="userSquarePhotoPath")
     user_status: int = Field(alias="userStatus")
     user_sussi_id: str = Field(alias="userSussiID")
-    user_time_line_periods: list = Field(
-        alias="userTimeLinePeriods", default_factory=list
-    )
+    user_time_line_periods: list = Field(alias="userTimeLinePeriods", default_factory=list)
     user_vsn: Optional[str] = Field(alias="userVSN", default=None)
     user_year_level: Optional[str] = Field(alias="userYearLevel", default=None)
     user_year_level_id: Optional[int] = Field(alias="userYearLevelId", default=None)
