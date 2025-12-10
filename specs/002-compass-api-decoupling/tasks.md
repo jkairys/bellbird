@@ -97,7 +97,7 @@
 - [X] T043 [US2] Integrate startup validation into Flask app factory in `packages/bellweaver/bellweaver/api/__init__.py`
 - [X] T044 [US2] Update test fixtures in `packages/bellweaver/tests/conftest.py` to set COMPASS_MODE=mock
 - [X] T045 [US2] Update bellweaver test workflow in `.github/workflows/test-bellweaver.yml` to set COMPASS_MODE=mock
-- [X] T046 [US2] Configure path filters in test-bellweaver.yml: packages/bellweaver/** and packages/compass-client/**
+- [X] T046 [US2] Configure path filters in test-bellweaver.yml: packages/bellweaver/**and packages/compass-client/**
 - [X] T047 [US2] Test CI pipeline: Create PR and verify bellweaver tests run with mock mode in GitHub Actions
 - [X] T048 [US2] Verify zero authentication failures in CI logs
 
@@ -159,19 +159,19 @@
 
 **Purpose**: Comprehensive testing across all user stories and package integration
 
-- [ ] T073 [P] Write unit tests for CompassClient in `packages/compass-client/tests/unit/test_client.py`
-- [ ] T074 [P] Write unit tests for CompassMockClient in `packages/compass-client/tests/unit/test_mock_client.py`
-- [ ] T075 [P] Write unit tests for CompassParser in `packages/compass-client/tests/unit/test_parser.py`
-- [ ] T076 [P] Write unit tests for CompassEvent and CompassUser models in `packages/compass-client/tests/unit/test_models.py`
-- [ ] T077 [P] Write unit tests for create_client() factory in `packages/compass-client/tests/unit/test_factory.py`
-- [ ] T078 [P] Write contract compliance tests in `packages/compass-client/tests/integration/test_interface_parity.py`
-- [ ] T079 [P] Write mock data validation tests in `packages/compass-client/tests/unit/test_mock_validator.py`
-- [ ] T080 Write integration tests for bellweaver with mock compass-client in `packages/bellweaver/tests/integration/test_compass_integration.py`
-- [ ] T081 [P] Update existing bellweaver tests to use mock compass-client
-- [ ] T082 Run full test suite for compass-client: `cd packages/compass-client && poetry run pytest --cov`
-- [ ] T083 Run full test suite for bellweaver: `cd packages/bellweaver && poetry run pytest --cov`
-- [ ] T084 Verify test coverage for compass-client package (target: >80%)
-- [ ] T085 Verify test coverage for bellweaver package (maintained at current level)
+- [x] T073 [P] Write unit tests for CompassClient in `packages/compass-client/tests/unit/test_client.py`
+- [x] T074 [P] Write unit tests for CompassMockClient in `packages/compass-client/tests/unit/test_mock_client.py`
+- [x] T075 [P] Write unit tests for CompassParser in `packages/compass-client/tests/unit/test_parser.py`
+- [x] T076 [P] Write unit tests for CompassEvent and CompassUser models in `packages/compass-client/tests/unit/test_models.py`
+- [x] T077 [P] Write unit tests for create_client() factory in `packages/compass-client/tests/unit/test_factory.py`
+- [x] T078 [P] Write contract compliance tests in `packages/compass-client/tests/integration/test_interface_parity.py`
+- [x] T079 [P] Write mock data validation tests in `packages/compass-client/tests/unit/test_mock_validator.py`
+- [x] T080 Write integration tests for bellweaver with mock compass-client in `packages/bellweaver/tests/integration/test_compass_integration.py`
+- [x] T081 [P] Update existing bellweaver tests to use mock compass-client
+- [x] T082 Run full test suite for compass-client: `cd packages/compass-client && poetry run pytest --cov`
+- [x] T083 Run full test suite for bellweaver: `cd packages/bellweaver && poetry run pytest --cov`
+- [x] T084 Verify test coverage for compass-client package (target: >80%)
+- [x] T085 Verify test coverage for bellweaver package (maintained at current level)
 
 ---
 
@@ -179,17 +179,17 @@
 
 **Purpose**: Complete documentation for developers using the decoupled architecture
 
-- [ ] T086 [P] Update `packages/compass-client/README.md` with installation instructions
-- [ ] T087 [P] Add usage examples to compass-client README.md for both real and mock modes
-- [ ] T088 [P] Document public API in compass-client README.md (classes, functions, exceptions)
-- [ ] T089 [P] Update `packages/bellweaver/README.md` with compass-client integration instructions
+- [X] T086 [P] Update `packages/compass-client/README.md` with installation instructions
+- [X] T087 [P] Add usage examples to compass-client README.md for both real and mock modes
+- [X] T088 [P] Document public API in compass-client README.md (classes, functions, exceptions)
+- [X] T089 [P] Update `packages/bellweaver/README.md` with compass-client integration instructions
 - [ ] T090 [P] Update root `README.md` with monorepo structure and package overview
 - [ ] T091 [P] Create migration guide in `docs/migration-compass-decoupling.md` for developers
 - [ ] T092 Update `docs/architecture.md` with multi-package monorepo structure
 - [ ] T093 Update `docs/quick-start.md` with compass-client installation steps
 - [ ] T094 Update `CLAUDE.md` with new import patterns and package structure
-- [ ] T095 [P] Add troubleshooting section to compass-client README.md
-- [ ] T096 [P] Add troubleshooting section to bellweaver README.md for compass integration
+- [X] T095 [P] Add troubleshooting section to compass-client README.md
+- [X] T096 [P] Add troubleshooting section to bellweaver README.md for compass integration
 - [ ] T097 Validate quickstart.md by following all steps from clean environment
 
 ---
@@ -198,14 +198,14 @@
 
 **Purpose**: Update Docker configuration for multi-package monorepo
 
-- [ ] T098 Update `Dockerfile` to build compass-client package first
-- [ ] T099 Update Dockerfile to install compass-client in bellweaver build stage
-- [ ] T100 Update `docker-compose.yml` to set COMPASS_MODE=mock for development
-- [ ] T101 Update docker-compose.yml to mount packages/ directory structure
-- [ ] T102 Test Docker build: `docker-compose build`
-- [ ] T103 Test Docker run with mock mode: `docker-compose up` and verify COMPASS_MODE=mock
-- [ ] T104 Test Docker run with real mode: Set COMPASS_MODE=real and verify real API connection
-- [ ] T105 Update Docker documentation in README.md with new environment variables
+- [X] T098 Update `Dockerfile` to build compass-client package first
+- [X] T099 Update Dockerfile to install compass-client in bellweaver build stage
+- [X] T100 Update `docker-compose.yml` to set COMPASS_MODE=mock for development
+- [X] T101 Update docker-compose.yml to mount packages/ directory structure
+- [X] T102 Test Docker build: `docker-compose build`
+- [X] T103 Test Docker run with mock mode: `docker-compose up` and verify COMPASS_MODE=mock
+- [X] T104 Test Docker run with real mode: Set COMPASS_MODE=real and verify real API connection
+- [X] T105 Update Docker documentation in README.md with new environment variables
 
 ---
 
@@ -354,38 +354,46 @@ With multiple developers:
 ## Success Criteria Validation
 
 ### SC-001: Local Development Speed
+
 - [ ] Verify application starts with mock data in under 30 seconds
 - [ ] Test all API endpoints accessible without Compass credentials
 
 ### SC-002: CI/CD Pipeline Success
+
 - [ ] Verify Bellweaver test suite completes in GitHub runners without geo-blocking
 - [ ] Confirm zero authentication failures in CI logs
 
 ### SC-003: Mock Data Refresh
+
 - [ ] Verify mock data can be refreshed using real Compass API
 - [ ] Confirm refresh completes in under 5 minutes
 - [ ] Validate updated data can be committed to repository
 
 ### SC-004: Selective CI Execution
+
 - [ ] Measure CI workflow execution reduction (target: 70%+ reduction in unnecessary runs)
 - [ ] Verify Compass library tests only run when Compass code changes
 
 ### SC-005: API Endpoint Parity
+
 - [ ] Verify 100% of existing API endpoints function identically in mock and real modes
 - [ ] Test that consumers cannot observe differences except data source
 
 ### SC-006: Startup Performance
+
 - [ ] Measure application startup time in mock mode
 - [ ] Verify startup time is within 10% of real API mode
 
 ### SC-007: Authentication Success
+
 - [ ] Verify zero authentication failures occur in CI pipelines with mock mode
 
 ---
 
 ## Total Task Count: 121 tasks
 
-### Breakdown by Phase:
+### Breakdown by Phase
+
 - Phase 1 (Setup): 8 tasks
 - Phase 2 (Foundational): 14 tasks
 - Phase 3 (User Story 1): 14 tasks
@@ -397,7 +405,8 @@ With multiple developers:
 - Phase 9 (Docker): 8 tasks
 - Phase 10 (Polish): 16 tasks
 
-### Breakdown by User Story:
+### Breakdown by User Story
+
 - User Story 1 (Local Development): 14 tasks
 - User Story 2 (CI/CD Pipeline): 12 tasks
 - User Story 3 (Mock Data Refresh): 13 tasks
@@ -405,7 +414,8 @@ With multiple developers:
 - Infrastructure (Setup + Foundational): 22 tasks
 - Quality Assurance (Testing + Documentation + Docker + Polish): 49 tasks
 
-### Parallel Opportunities Identified:
+### Parallel Opportunities Identified
+
 - Setup Phase: 6 parallel tasks (T002-T008)
 - Foundational Phase: 8 parallel tasks (T009-T013, T016-T018)
 - User Story 1: 3 parallel tasks (T023-T025)

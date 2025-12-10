@@ -38,60 +38,138 @@ The MVP focuses on **Compass only** for local development:
 
 ## Project Structure
 
+This is a **monorepo** containing two independent Python packages:
+
+### 1. compass-client Package (Independent Library)
+
+Standalone Compass Education API client with mock data support. Can be used independently or as a dependency.
+
 ```
-bellweaver/
-├── packages/                     # Python packages (monorepo structure)
-│   ├── compass-client/          # Compass API client library
-│   │   ├── compass_client/
-│   │   │   ├── adapters/        # API client implementations
-│   │   │   ├── models/          # Data models
-│   │   │   └── parsers/         # Data validation layer
-│   │   ├── tests/
-│   │   ├── pyproject.toml
-│   │   └── README.md
+packages/compass-client/
+├── compass_client/              # Package source
+│   ├── __init__.py             # Public API exports
+│   ├── client.py               # Real Compass HTTP client
+│   ├── mock_client.py          # Mock client with sample data
+│   ├── models.py               # Pydantic models (CompassEvent, CompassUser)
+│   ├── parser.py               # Generic validation parser
+│   ├── factory.py              # create_client() factory function
+│   ├── exceptions.py           # Custom exceptions
+│   └── cli/                    # CLI commands
+│       └── refresh_mock_data.py
+├── data/mock/                  # Mock data (committed to repo)
+│   ├── compass_events.json
+│   ├── compass_user.json
+│   └── schema_version.json
+├── tests/                      # compass-client tests
+│   ├── unit/
+│   ├── integration/
+│   └── conftest.py
+├── pyproject.toml              # Package dependencies
+└── README.md                   # Package documentation
+```
+
+### 2. bellweaver Package (Main Application)
+
+Event aggregation and filtering application. Depends on compass-client package.
+
+```
+packages/bellweaver/
+├── bellweaver/                 # Main Python package
+│   ├── __init__.py
+│   ├── cli/                    # CLI interface
+│   │   ├── main.py
+│   │   └── commands/
+│   │       ├── compass.py      # Uses compass_client
+│   │       ├── api.py
+│   │       └── mock.py
 │   │
-│   └── bellweaver/              # Main application
-│       ├── bellweaver/          # Main Python package
-│       │   ├── __init__.py
-│       │   ├── cli/             # CLI interface
-│       │   │   ├── main.py
-│       │   │   └── commands/
-│       │   │
-│       │   ├── db/              # Database layer
-│       │   │   ├── database.py      # SQLAlchemy connection & schema
-│       │   │   ├── credentials.py   # Encrypted credential storage
-│       │   │   └── models.py        # ORM models
-│       │   │
-│       │   ├── filtering/       # Event filtering & enrichment
-│       │   │   └── llm_filter.py    # Claude API filtering logic
-│       │   │
-│       │   ├── models/          # Pydantic/dataclass models
-│       │   │   ├── compass.py
-│       │   │   └── config.py
-│       │   │
-│       │   └── api/             # REST API (Flask)
-│       │       ├── __init__.py  # Flask app factory
-│       │       └── routes.py    # Route handlers
-│       │
-│       ├── tests/               # Unit & integration tests
-│       ├── data/                # Data directory (gitignored)
-│       ├── pyproject.toml       # Poetry configuration
-│       └── README.md            # Package setup instructions
+│   ├── db/                     # Database layer
+│   │   ├── database.py         # SQLAlchemy connection & schema
+│   │   ├── credentials.py      # Encrypted credential storage
+│   │   └── models.py           # ORM models
+│   │
+│   ├── api/                    # REST API (Flask)
+│   │   ├── __init__.py         # Flask app factory
+│   │   └── routes.py           # Route handlers (uses compass_client)
+│   │
+│   ├── filtering/              # Event filtering & enrichment
+│   │   └── llm_filter.py       # Claude API filtering logic
+│   │
+│   ├── mappers/                # Domain model transformations
+│   │   └── compass.py          # compass_client → bellweaver models
+│   │
+│   └── models/                 # Bellweaver domain models
+│       └── config.py
 │
-├── frontend/                    # Frontend React application
-│   ├── src/                     # Source files
-│   ├── public/                  # Static assets
-│   └── README.md                # Frontend setup instructions
+├── tests/                      # Bellweaver tests
+│   ├── unit/
+│   ├── integration/
+│   │   └── test_compass_integration.py  # Tests compass_client usage
+│   └── conftest.py             # Fixtures (sets COMPASS_MODE=mock)
 │
-├── docs/                        # Project documentation
-│   ├── index.md                 # Documentation index
-│   ├── quick-start.md           # Quick start guide
-│   └── architecture.md          # Technical design
+├── data/                       # Data directory (gitignored)
+│   └── bellweaver.db           # SQLite database
 │
-├── .env.example                 # Environment template (for Docker and local)
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
+├── pyproject.toml              # Includes compass-client dependency
+└── README.md                   # Package documentation
 ```
+
+### Supporting Files
+
+```
+bellweaver/                     # Project root
+├── packages/                   # Python packages (see above)
+├── frontend/                   # React frontend application
+│   ├── src/
+│   ├── public/
+│   └── README.md
+├── docs/                       # Project documentation
+│   ├── index.md
+│   ├── quick-start.md
+│   ├── architecture.md
+│   └── docker-deployment.md
+├── .github/workflows/          # CI/CD pipelines
+│   ├── test-compass.yml        # CI for compass-client only
+│   └── test-bellweaver.yml     # CI for bellweaver only
+├── .env.example                # Environment template
+├── .gitignore                  # Git ignore rules
+├── docker-compose.yml          # Docker deployment
+└── README.md                   # This file
+```
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────┐
+│  bellweaver (Main Application)          │
+│  ├── Flask REST API                     │
+│  ├── Database (SQLite + SQLAlchemy)     │
+│  ├── CLI Commands                       │
+│  ├── LLM Filtering (Claude API)         │
+│  └── Event Mappers                      │
+│                                          │
+│  Depends on ↓                            │
+└─────────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────┐
+│  compass-client (Independent Package)   │
+│  ├── CompassClient (Real API)           │
+│  ├── CompassMockClient (Mock Data)      │
+│  ├── create_client() Factory            │
+│  ├── Pydantic Models                    │
+│  └── Generic Parser                     │
+│                                          │
+│  Mode: "real" or "mock" (via env var)   │
+└─────────────────────────────────────────┘
+```
+
+**Key Benefits:**
+- **Decoupled**: compass-client can be developed/tested independently
+- **Mock Support**: Full development possible without Compass credentials
+- **CI-Friendly**: Tests run in mock mode, no geo-blocking issues
+- **Testable**: Each package has its own isolated test suite
+- **Clear Boundaries**: API client logic separated from application logic
 
 ## Deployment Options
 
@@ -107,10 +185,13 @@ Quick start:
 # Copy environment template
 cp .env.example .env
 
-# Edit .env with your Compass credentials
-# Then build and start
+# Build and start the services
 docker-compose build
 docker-compose up -d
+
+# By default, COMPASS_MODE is set to 'mock' in docker-compose.yml for convenience.
+# To run in 'real' mode, you can override this in your .env file or directly in docker-compose.yml.
+# Ensure your Compass credentials are set in .env if running in 'real' mode.
 
 # Sync data from Compass (can run in Docker or locally)
 docker exec -it bellweaver bellweaver compass sync
@@ -142,17 +223,25 @@ git clone <repo-url>
 cd bellweaver
 ```
 
-2. **Set up the backend**:
+2. **Set up the Python packages**:
 
 ```bash
-cd packages/bellweaver
+# Install compass-client package first
+cd packages/compass-client
 poetry install --with dev
+
+# Install bellweaver package (includes compass-client as dependency)
+cd ../bellweaver
+poetry install --with dev
+
+# Verify both packages are installed
+poetry run python -c "from compass_client import create_client; print('✓ compass-client available')"
 ```
 
 3. **Set up the frontend**:
 
 ```bash
-cd ../frontend
+cd ../../frontend
 npm install
 ```
 
@@ -166,15 +255,23 @@ cp .env.example .env
 Then edit `.env` with your actual values:
 
 ```bash
+# Compass API Mode (mock for development, real for production)
+COMPASS_MODE=mock  # Start with mock mode (no credentials needed)
+
+# Compass credentials (only required when COMPASS_MODE=real)
 COMPASS_USERNAME=your_compass_username
 COMPASS_PASSWORD=your_compass_password
 COMPASS_BASE_URL=https://your-school.compass.education
+
+# Claude API Key (required for filtering)
+CLAUDE_API_KEY=your-anthropic-api-key
 ```
 
 5. **Verify installation**:
 
 ```bash
-poetry run pytest
+cd packages/bellweaver
+poetry run pytest  # All tests use mock mode by default
 ```
 
 #### Running in Development Mode

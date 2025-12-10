@@ -9,9 +9,12 @@ services:
     environment:
       - FLASK_DEBUG=true
       - DATABASE_PATH=/app/data/bellweaver.db
+      - COMPASS_MODE=mock
     volumes:
       # Persist database outside container
       - ./packages/bellweaver/data:/app/data
+      # Mount packages for development
+      - ./packages:/app/packages
     restart: unless-stopped
     env_file: .env
     healthcheck:

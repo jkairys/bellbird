@@ -38,7 +38,11 @@ def load_and_validate_mock_data(
                                  doesn't match expected schema.
     """
     if mock_data_dir is None:
-        mock_data_dir = Path(__file__).parent.parent / "data" / "mock"
+        # Resolve to the actual location of the package when installed in editable mode
+        # Path(__file__) is <package_root>/compass_client/mock_validator.py
+        # .parent is <package_root>/compass_client/
+        # .parent again is <package_root>/
+        mock_data_dir = Path(__file__).resolve().parent.parent / "data" / "mock"
 
     # Validate directory exists
     if not mock_data_dir.exists():

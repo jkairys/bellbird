@@ -29,23 +29,15 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Install Poetry
-RUN pip install poetry==1.7.1
+# Copy packages
+COPY packages/compass-client ./packages/compass-client
+COPY packages/bellweaver ./packages/bellweaver
 
-# Copy backend dependency files and README
-COPY packages/bellweaver/pyproject.toml packages/bellweaver/poetry.lock packages/bellweaver/README.md ./
-
-# Copy backend source code (needed for poetry install to work with scripts)
-COPY packages/bellweaver/bellweaver ./bellweaver
-
-# Configure Poetry to not create virtual environment (we're in a container)
-RUN poetry config virtualenvs.create false
-
-# Install dependencies AND the package itself (for CLI scripts)
-RUN poetry install --only main --no-interaction --no-ansi
+# Install bellweaver and its dependencies, including path-based compass-client, in editable mode
+RUN pip install -e ./packages/bellweaver
 
 # Copy built frontend from frontend-builder stage into backend/bellweaver/static
-COPY --from=frontend-builder /app/frontend/dist ./bellweaver/static
+COPY --from=frontend-builder /app/frontend/dist ./packages/bellweaver/bellweaver/static
 
 # Create data directory for SQLite database
 RUN mkdir -p /app/data
