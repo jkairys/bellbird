@@ -1,0 +1,121 @@
+name: Deploy Bellweaver to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+
+jobs:
+  deploy-main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/bellweaver:${{ github.sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Run for main
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bellweaver-main
+          image: ghcr.io/${{ github.repository }}/bellweaver:${{ github.sha }}
+          region: australia-southeast1
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            COMPASS_USERNAME=${{ secrets.COMPASS_USERNAME }}
+            COMPASS_PASSWORD=${{ secrets.COMPASS_PASSWORD }}
+            COMPASS_BASE_URL=${{ secrets.COMPASS_BASE_URL }}
+          flags: '--allow-unauthenticated'
+
+  deploy-pr:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/bellweaver:${{ github.sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Run for PR
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bellweaver-pr-${{ github.event.number }}
+          image: ghcr.io/${{ github.repository }}/bellweaver:${{ github.sha }}
+          region: australia-southeast1
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            COMPASS_USERNAME=${{ secrets.COMPASS_USERNAME }}
+            COMPASS_PASSWORD=${{ secrets.COMPASS_PASSWORD }}
+            COMPASS_BASE_URL=${{ secrets.COMPASS_BASE_URL }}
+          flags: '--allow-unauthenticated'
+
+      - name: Comment on PR with deployment URL
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue_number = context.issue.number;
+            const pr_url = "${{ steps.deploy.outputs.url }}";
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              body: `🚀 Preview deployment is ready at: ${pr_url}`
+            });
+
+  cleanup-pr:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Delete Cloud Run service for PR
+        run: |
+          gcloud run services delete bellweaver-pr-${{ github.event.number }} \
+            --region australia-southeast1 \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --quiet
