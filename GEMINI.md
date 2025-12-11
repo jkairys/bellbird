@@ -15,6 +15,10 @@ tests/
 
 ## Commands
 
+### Python (`bellweaver` CLI)
+
+- `bellweaver bootstrap run [--with-compass/--no-compass]`: Bootstraps the database with initial data (children, organisations, communication channels) and optionally runs Compass sync/process.
+
 # Add commands for Node.js 20+ (LTS)
 
 ## Code Style

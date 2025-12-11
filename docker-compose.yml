@@ -10,6 +10,7 @@ services:
       - FLASK_DEBUG=true
       - DATABASE_PATH=/app/data/bellweaver.db
       - COMPASS_MODE=mock
+      - BOOTSTRAP_ON_STARTUP=true
     volumes:
       # Persist database outside container
       - ./packages/bellweaver/data:/app/data
