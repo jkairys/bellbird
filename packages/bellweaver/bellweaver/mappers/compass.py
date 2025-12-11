@@ -4,8 +4,8 @@ This module handles the transformation of CompassEvent objects (from the Compass
 into normalized Event objects that can be used consistently across the application.
 """
 
-from compass_client import CompassEvent
 from bellweaver.models.event import Event
+from compass_client import CompassEvent
 
 
 def compass_event_to_event(compass_event: CompassEvent) -> Event:
@@ -35,7 +35,7 @@ def compass_event_to_event(compass_event: CompassEvent) -> Event:
         location = compass_event.locations[0].location_name
 
     # Extract attendees from managers if available
-    attendees = []
+    attendees: list = []
     if compass_event.managers:
         # For now, we don't have manager names in the model, just IDs
         # We can enhance this later when we have user lookup capabilities

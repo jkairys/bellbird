@@ -390,11 +390,11 @@ def update_child(child_id: str):
             raise ValidationError(str(e), "VALIDATION_ERROR")
 
         # Update fields
-        child.name = update_data.name
-        child.date_of_birth = update_data.date_of_birth
-        child.gender = update_data.gender
-        child.interests = update_data.interests
-        child.updated_at = datetime.now(timezone.utc)
+        child.name = update_data.name  # type: ignore[assignment]
+        child.date_of_birth = update_data.date_of_birth  # type: ignore[assignment]
+        child.gender = update_data.gender  # type: ignore[assignment]
+        child.interests = update_data.interests  # type: ignore[assignment]
+        child.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
         db.commit()
         db.refresh(child)
@@ -599,11 +599,11 @@ def update_organisation(org_id: str):
         except Exception as e:
             raise ValidationError(str(e), "VALIDATION_ERROR")
 
-        org.name = update_data.name
-        org.type = update_data.type.value
-        org.address = update_data.address
-        org.contact_info = update_data.contact_info
-        org.updated_at = datetime.now(timezone.utc)
+        org.name = update_data.name  # type: ignore[assignment]
+        org.type = update_data.type.value  # type: ignore[assignment]
+        org.address = update_data.address  # type: ignore[assignment]
+        org.contact_info = update_data.contact_info  # type: ignore[assignment]
+        org.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
         db.commit()
         db.refresh(org)
@@ -711,17 +711,17 @@ def create_child_organisation(child_id: str):
             raise ValidationError(str(e), "VALIDATION_ERROR")
 
         # Check if organisation exists
-        stmt = select(DBOrganisation).where(DBOrganisation.id == assoc_data.organisation_id)
-        org = db.execute(stmt).scalar_one_or_none()
+        org_stmt = select(DBOrganisation).where(DBOrganisation.id == assoc_data.organisation_id)
+        org = db.execute(org_stmt).scalar_one_or_none()
         if not org:
             return jsonify({"error": "Organisation not found"}), 404
 
         # Check if association already exists
-        stmt = select(ChildOrganisation).where(
+        assoc_stmt = select(ChildOrganisation).where(
             ChildOrganisation.child_id == child_id,
             ChildOrganisation.organisation_id == assoc_data.organisation_id,
         )
-        existing = db.execute(stmt).scalar_one_or_none()
+        existing = db.execute(assoc_stmt).scalar_one_or_none()
         if existing:
             return jsonify({"error": "Association already exists"}), 409
 
@@ -1036,15 +1036,15 @@ def update_channel(channel_id: str):
             update_data.config["base_url"] = base_url
 
             # Ensure association
-            channel.credential_source = "compass"
+            channel.credential_source = "compass"  # type: ignore[assignment]
 
         # Update other fields
-        channel.channel_type = update_data.channel_type.value
+        channel.channel_type = update_data.channel_type.value  # type: ignore[assignment]
         if update_data.config:
-            channel.config = update_data.config
+            channel.config = update_data.config  # type: ignore[assignment]
 
-        channel.is_active = update_data.is_active
-        channel.updated_at = datetime.now(timezone.utc)
+        channel.is_active = update_data.is_active  # type: ignore[assignment]
+        channel.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
         db.commit()
         db.refresh(channel)

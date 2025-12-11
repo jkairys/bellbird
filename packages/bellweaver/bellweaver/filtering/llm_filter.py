@@ -49,9 +49,15 @@ class LLMFilter:
         )
 
         # Parse response
-        response_text = message.content[0].text
+        first_block = message.content[0]
+        if hasattr(first_block, "text"):
+            response_text = first_block.text
+        else:
+            # Fallback if first block is not a text block
+            response_text = str(first_block)
 
         # Try to parse JSON from response
+        result: Dict[str, Any]
         try:
             # Look for JSON block in response
             json_match = re.search(r"```json\n(.*?)\n```", response_text, re.DOTALL)
@@ -63,7 +69,7 @@ class LLMFilter:
             # If parsing fails, return raw response
             result = {"raw_response": response_text, "events": []}
 
-        return result
+        return result  # type: ignore[return-value]
 
     def _build_prompt(self, events: List[Dict[str, Any]], user_config: Dict[str, Any]) -> str:
         """Build Claude prompt for filtering events."""

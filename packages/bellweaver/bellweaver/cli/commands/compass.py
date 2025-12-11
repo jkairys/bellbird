@@ -77,7 +77,8 @@ def sync_calendar_events(
             typer.echo("  - COMPASS_PASSWORD")
         raise typer.Exit(1)
 
-    # Ensure base_url has a scheme
+    # Ensure base_url has a scheme (base_url is guaranteed to be non-None here)
+    assert base_url is not None  # Type narrowing for mypy
     if not base_url.startswith(("http://", "https://")):
         base_url = f"https://{base_url}"
 
