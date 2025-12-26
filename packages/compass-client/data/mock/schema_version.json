@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "api_version": "1.0",
-  "last_updated": "2025-12-10T00:00:00Z",
-  "source": "real",
+  "last_updated": "2025-12-26T00:00:00Z",
+  "source": "synthetic",
   "compass_version": "unknown",
-  "notes": "Initial mock data migrated from bellweaver package"
+  "notes": "Expanded mock data covering Dec 2025 - Feb 2026 (3 months)"
 }
