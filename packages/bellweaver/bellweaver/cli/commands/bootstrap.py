@@ -94,7 +94,7 @@ def seed_data(db: Session):
         name="North Primary School",
         type=OrganisationType.SCHOOL.value,
         address="123 Education Lane, Northville",
-        contact_info="admin@northprimary.edu",
+        contact_info={"email": "admin@northprimary.edu"},
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
@@ -104,7 +104,7 @@ def seed_data(db: Session):
         name="Northville Soccer Club",
         type=OrganisationType.SPORTS_TEAM.value,
         address="456 Sport St, Northville",
-        contact_info="info@northvillesoccer.org",
+        contact_info={"email": "info@northvillesoccer.org"},
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
