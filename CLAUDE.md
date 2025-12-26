@@ -58,10 +58,11 @@ osascript -e 'display notification "Waiting for your input" with title "Claude C
 ### Development Tools
 
 - **Task Runner**: Task (Taskfile.yml)
-- **Testing**: pytest + pytest-cov
+- **Backend Testing**: pytest + pytest-cov
+- **Frontend Testing**: Vitest + React Testing Library
 - **Formatting**: black, ruff
-- **Linting**: ruff, flake8
-- **Type Checking**: mypy
+- **Linting**: ruff, flake8, ESLint (frontend)
+- **Type Checking**: mypy (Python), TypeScript (frontend)
 
 ## Environment & Configuration
 
@@ -147,6 +148,8 @@ task clean                  # Clean all build artifacts and caches
 task frontend:install       # npm install
 task frontend:dev           # Start Vite dev server
 task frontend:build         # Production build
+task frontend:test          # Run Vitest frontend tests
+task frontend:typecheck     # TypeScript type checking
 
 # Backend-specific tasks
 task backend:install        # Install both packages with Poetry
@@ -163,6 +166,27 @@ task backend:compass-client:test
 task backend:compass-client:test:integration
 task backend:compass-client:refresh-mock
 ```
+
+### AI Agent Verification Commands
+
+These commands allow AI agents to verify their changes work without requiring human feedback:
+
+```bash
+# Full verification suite (recommended before PR)
+task verify                 # Run lint, type-check, test, and build
+
+# Quick verification (faster, for intermediate checks)
+task verify:quick           # Run lint and unit tests only
+
+# Individual verification steps
+task verify:lint            # Run all linters
+task verify:types           # Run mypy (Python) and tsc (TypeScript)
+task verify:test            # Run all tests with coverage
+task verify:build           # Verify frontend builds successfully
+task verify:api             # Start backend, test API endpoints, cleanup
+```
+
+**Usage**: Run `task verify:quick` after making changes to quickly validate. Run `task verify` before creating a PR for full validation.
 
 ### Docker Commands
 

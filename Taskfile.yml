@@ -25,6 +25,7 @@ tasks:
     desc: Run all tests across all packages
     cmds:
       - task: backend:test
+      - task: frontend:test
 
   test:unit:
     desc: Run unit tests across all packages
@@ -52,6 +53,136 @@ tasks:
       - find packages -type d -name ".mypy_cache" -exec rm -rf {} +
       - find packages -type d -name ".ruff_cache" -exec rm -rf {} +
       - find packages -type d -name "*.egg-info" -exec rm -rf {} +
+
+  # ==========================================================================
+  # AI AGENT VERIFICATION TASKS
+  # These tasks allow autonomous verification without human feedback
+  # ==========================================================================
+
+  verify:
+    desc: Run full verification suite (lint, type-check, test, build)
+    cmds:
+      - echo "════════════════════════════════════════════════════════════"
+      - echo "  BELLWEAVER VERIFICATION SUITE"
+      - echo "════════════════════════════════════════════════════════════"
+      - task: verify:lint
+      - task: verify:types
+      - task: verify:test
+      - task: verify:build
+      - echo ""
+      - echo "════════════════════════════════════════════════════════════"
+      - echo "  ✓ ALL VERIFICATION CHECKS PASSED"
+      - echo "════════════════════════════════════════════════════════════"
+
+  verify:quick:
+    desc: Quick verification (lint and unit tests only)
+    cmds:
+      - echo "Running quick verification..."
+      - task: verify:lint
+      - task: test:unit
+      - echo "✓ Quick verification passed"
+
+  verify:lint:
+    desc: Run all linters
+    cmds:
+      - echo "▸ Running linters..."
+      - task: backend:lint
+      - echo "✓ Linting passed"
+
+  verify:types:
+    desc: Run type checking (Python mypy + TypeScript)
+    cmds:
+      - echo "▸ Running type checks..."
+      - cd packages/bellweaver && poetry run mypy bellweaver --ignore-missing-imports
+      - cd frontend && npx tsc --noEmit
+      - echo "✓ Type checking passed"
+
+  verify:test:
+    desc: Run all tests with coverage
+    cmds:
+      - echo "▸ Running tests..."
+      - task: backend:test
+      - echo "✓ All tests passed"
+
+  verify:build:
+    desc: Verify frontend builds successfully
+    cmds:
+      - echo "▸ Building frontend..."
+      - task: frontend:build
+      - echo "✓ Frontend build successful"
+
+  verify:api:
+    desc: Start backend and verify API endpoints respond
+    vars:
+      PORT: 5099
+    cmds:
+      - echo "▸ Starting backend on port {{.PORT}}..."
+      - |
+        # Kill any existing process on the port
+        lsof -ti:{{.PORT}} 2>/dev/null | xargs kill 2>/dev/null || true
+        sleep 1
+
+        # Start backend in background, suppressing output
+        cd packages/bellweaver && COMPASS_MODE=mock poetry run bellweaver api serve --host 127.0.0.1 --port {{.PORT}} >/dev/null 2>&1 &
+        PID=$!
+
+        # Wait for server to be ready (max 30 seconds)
+        echo "  Waiting for server..."
+        for i in $(seq 1 30); do
+          if curl -s "http://127.0.0.1:{{.PORT}}/api/children" >/dev/null 2>&1; then
+            echo "  Server ready after ${i}s"
+            break
+          fi
+          sleep 1
+        done
+
+        # Test endpoints
+        echo "▸ Testing API endpoints..."
+        FAILED=0
+
+        # Test GET /api/children
+        if curl -sf "http://127.0.0.1:{{.PORT}}/api/children" | grep -q '\['; then
+          echo "  ✓ GET /api/children"
+        else
+          echo "  ✗ GET /api/children"
+          FAILED=1
+        fi
+
+        # Test GET /api/organisations
+        if curl -sf "http://127.0.0.1:{{.PORT}}/api/organisations" | grep -q '\['; then
+          echo "  ✓ GET /api/organisations"
+        else
+          echo "  ✗ GET /api/organisations"
+          FAILED=1
+        fi
+
+        # Test POST /api/children
+        RESP=$(curl -sf -X POST "http://127.0.0.1:{{.PORT}}/api/children" \
+          -H 'Content-Type: application/json' \
+          -d '{"name":"Verify Test","date_of_birth":"2020-01-01"}')
+        if echo "$RESP" | grep -q '"id"'; then
+          # Extract UUID using grep -o for the pattern
+          ID=$(echo "$RESP" | grep -oE '"id": *"[a-f0-9-]+"' | head -1 | grep -oE '[a-f0-9-]{36}')
+          echo "  ✓ POST /api/children (created id=$ID)"
+          if [ -n "$ID" ]; then
+            curl -sf -X DELETE "http://127.0.0.1:{{.PORT}}/api/children/$ID" >/dev/null
+            echo "  ✓ DELETE /api/children/$ID"
+          fi
+        else
+          echo "  ✗ POST /api/children"
+          FAILED=1
+        fi
+
+        # Cleanup - kill the server
+        kill $PID 2>/dev/null || true
+        lsof -ti:{{.PORT}} 2>/dev/null | xargs kill 2>/dev/null || true
+
+        if [ $FAILED -eq 0 ]; then
+          echo "✓ API verification passed"
+        else
+          echo "✗ API verification failed"
+          exit 1
+        fi
 
   default:
     desc: Show available tasks

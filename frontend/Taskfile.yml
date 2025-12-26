@@ -16,6 +16,26 @@ tasks:
     cmds:
       - npm run build
 
+  typecheck:
+    desc: Run TypeScript type checking
+    cmds:
+      - npx tsc --noEmit
+
+  lint:
+    desc: Run ESLint
+    cmds:
+      - npx eslint src --ext .ts,.tsx
+
+  test:
+    desc: Run frontend tests (Vitest)
+    cmds:
+      - npx vitest run
+
+  test:watch:
+    desc: Run frontend tests in watch mode
+    cmds:
+      - npx vitest
+
   clean:
     desc: Clean build artifacts and node_modules
     cmds:
