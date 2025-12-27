@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
-from compass_client.client import CompassClient
+from .browser_fetcher import fetch_with_browser
 
 # Load environment variables from .env
 load_dotenv()
@@ -23,8 +23,11 @@ def fetch_real_data(
     base_url: Optional[str] = None,
     days: int = 30,
     limit: int = 100,
+    headless: bool = True,
 ) -> tuple[Dict[str, Any], List[Dict[str, Any]]]:
-    """Fetch user details and events from real Compass API.
+    """Fetch user details and events from real Compass API using browser automation.
+
+    Uses Playwright to handle Cloudflare protection and fetch data.
 
     Args:
         username: Compass API username
@@ -32,6 +35,7 @@ def fetch_real_data(
         base_url: Base URL for Compass instance
         days: Number of days to fetch events for (default: 30)
         limit: Maximum number of events to fetch (default: 100)
+        headless: Whether to run browser in headless mode (default: True)
 
     Returns:
         Tuple of (user_data_dict, events_list_of_dicts)
@@ -39,34 +43,21 @@ def fetch_real_data(
     Raises:
         Exception: If authentication fails or API call fails
     """
-    # Ensure credentials are not None before passing to CompassClient
+    # Ensure credentials are not None
     if username is None or password is None or base_url is None:
         raise ValueError(
-            "CompassClient requires non-None username, password, and base_url."
+            "Requires non-None username, password, and base_url."
             " Ensure these are provided as arguments or set in environment variables."
         )
 
-    client = CompassClient(username=username, password=password, base_url=base_url)
-
-    # Authenticate
-    client.login()
-
-    # Fetch user details
-    user_response = client.get_user_details()
-    user_data = user_response
-
-    # Fetch events
-    from datetime import timedelta
-
-    start_date = datetime.now().strftime("%Y-%m-%d")
-    end_date = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
-
-    events_response = client.get_calendar_events(
-        start_date=start_date, end_date=end_date, limit=limit
+    return fetch_with_browser(
+        base_url=base_url,
+        username=username,
+        password=password,
+        days=days,
+        limit=limit,
+        headless=headless,
     )
-    events_data = events_response
-
-    return user_data, events_data
 
 
 def sanitize_user_data(user_data: dict[str, Any]) -> dict[str, Any]:
@@ -176,11 +167,20 @@ def refresh_mock_data(
     password: Optional[str] = None,
     base_url: Optional[str] = None,
     skip_sanitize: bool = False,
+    headless: bool = True,
 ) -> None:
     """Refresh mock data by fetching fresh samples from real Compass API.
 
+    Uses Playwright browser automation to handle Cloudflare protection.
     Requires valid Compass credentials via environment variables or parameters.
     Sanitizes data to remove PII before storing in repository.
+
+    Args:
+        username: Compass username (or set COMPASS_USERNAME env var)
+        password: Compass password (or set COMPASS_PASSWORD env var)
+        base_url: Compass base URL (or set COMPASS_BASE_URL env var)
+        skip_sanitize: Skip PII sanitization (not recommended)
+        headless: Run browser in headless mode (default True)
     """
     # Get credentials from environment if not provided
     if not username:
@@ -203,11 +203,14 @@ def refresh_mock_data(
     print("Refreshing mock data from Compass API...")
     print(f"Base URL: {base_url}")
     print(f"Username: {username}")
+    print(f"Headless mode: {headless}")
 
     try:
-        # Fetch real data
-        print("\nFetching data from Compass API...")
-        user_data, events_data = fetch_real_data(username, password, base_url)
+        # Fetch real data using browser automation
+        print("\nFetching data from Compass API (using browser)...")
+        user_data, events_data = fetch_real_data(
+            username, password, base_url, headless=headless
+        )
         print(f"✓ Fetched user data: {len(str(user_data))} bytes")
         print(f"✓ Fetched {len(events_data)} events")
 

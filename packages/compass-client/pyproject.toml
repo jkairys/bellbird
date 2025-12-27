@@ -13,6 +13,8 @@ beautifulsoup4 = "^4.12.0"
 pydantic = "^2.0.0"
 typer = "^0.15.4"
 python-dotenv = "^1.0.0"
+playwright = "^1.57.0"
+playwright-stealth = "^2.0.0"
 
 [tool.poetry.scripts]
 compass-client = "compass_client.cli.main:main"

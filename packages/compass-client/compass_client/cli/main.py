@@ -28,6 +28,11 @@ def main():
         action="store_true",
         help="Skip PII sanitization (NOT recommended)",
     )
+    parser.add_argument(
+        "--no-headless",
+        action="store_true",
+        help="Run browser in visible mode (useful for debugging)",
+    )
 
     args = parser.parse_args()
 
@@ -37,6 +42,7 @@ def main():
             password=args.password,
             base_url=args.base_url,
             skip_sanitize=args.skip_sanitize,
+            headless=not args.no_headless,
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
