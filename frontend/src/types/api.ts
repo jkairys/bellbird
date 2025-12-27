@@ -39,6 +39,7 @@ export interface Child {
   name: string;
   date_of_birth: string; // YYYY-MM-DD format
   gender?: string;
+  year_level?: string;
   interests?: string;
   organisations?: Organisation[];
   created_at?: string;
@@ -73,6 +74,7 @@ export interface CreateChildData {
   name: string;
   date_of_birth: string;
   gender?: string;
+  year_level?: string;
   interests?: string;
 }
 

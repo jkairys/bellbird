@@ -393,6 +393,7 @@ def update_child(child_id: str):
         child.name = update_data.name  # type: ignore[assignment]
         child.date_of_birth = update_data.date_of_birth  # type: ignore[assignment]
         child.gender = update_data.gender  # type: ignore[assignment]
+        child.year_level = update_data.year_level  # type: ignore[assignment]
         child.interests = update_data.interests  # type: ignore[assignment]
         child.updated_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 

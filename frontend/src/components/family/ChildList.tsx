@@ -72,6 +72,13 @@ function ChildList({ children, onEdit, onDelete, loading }: ChildListProps) {
                 </div>
               )}
 
+              {child.year_level && (
+                <div className="child-info">
+                  <label>Year Level:</label>
+                  <span>{child.year_level}</span>
+                </div>
+              )}
+
               {child.interests && (
                 <div className="child-info">
                   <label>Interests:</label>

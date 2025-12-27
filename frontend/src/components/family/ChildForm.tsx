@@ -17,6 +17,7 @@ function ChildForm({ child, onSubmit, onCancel, loading, availableOrganisations,
     name: '',
     date_of_birth: '',
     gender: '',
+    year_level: '',
     interests: '',
   });
 
@@ -30,6 +31,7 @@ function ChildForm({ child, onSubmit, onCancel, loading, availableOrganisations,
         name: child.name || '',
         date_of_birth: child.date_of_birth || '',
         gender: child.gender || '',
+        year_level: child.year_level || '',
         interests: child.interests || '',
       });
     } else {
@@ -38,6 +40,7 @@ function ChildForm({ child, onSubmit, onCancel, loading, availableOrganisations,
         name: '',
         date_of_birth: '',
         gender: '',
+        year_level: '',
         interests: '',
       });
     }
@@ -96,6 +99,7 @@ function ChildForm({ child, onSubmit, onCancel, loading, availableOrganisations,
       name: formData.name.trim(),
       date_of_birth: formData.date_of_birth,
       gender: formData.gender?.trim() || undefined,
+      year_level: formData.year_level?.trim() || undefined,
       interests: formData.interests?.trim() || undefined,
     };
 
@@ -170,6 +174,19 @@ function ChildForm({ child, onSubmit, onCancel, loading, availableOrganisations,
             value={formData.gender}
             onChange={handleChange}
             placeholder="e.g., male, female, non-binary"
+            disabled={loading}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="year_level">Year Level (optional)</label>
+          <input
+            type="text"
+            id="year_level"
+            name="year_level"
+            value={formData.year_level}
+            onChange={handleChange}
+            placeholder="e.g., Year 3, Grade 5, Prep"
             disabled={loading}
           />
         </div>
