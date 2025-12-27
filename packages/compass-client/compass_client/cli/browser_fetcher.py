@@ -66,6 +66,13 @@ class BrowserFetcher:
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
             ),
+            # Additional args to appear more like a real browser
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
+            ],
+            # Try using Chrome instead of Chromium for better compatibility
+            channel="chrome" if not self.headless else None,
         )
         self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
 
@@ -85,16 +92,16 @@ class BrowserFetcher:
         if self._playwright:
             self._playwright.stop()
 
-    def _wait_for_cloudflare(self, max_wait: int = 30) -> None:
-        """Wait for Cloudflare challenge to complete."""
+    def _wait_for_cloudflare(self, max_wait: int = 60) -> None:
+        """Wait for Cloudflare/verification challenges to complete."""
         if not self._page:
             return
 
-        log("  Checking for Cloudflare challenge...")
+        log("  Checking for verification challenges...")
         start_time = time.time()
 
         while time.time() - start_time < max_wait:
-            # Check if we're past the Cloudflare challenge
+            # Check if we're past the challenge
             try:
                 page_content = self._page.content().lower()
             except Exception as e:
@@ -102,31 +109,39 @@ class BrowserFetcher:
                 time.sleep(2)
                 continue
 
-            # Cloudflare challenge indicators
-            cf_indicators = [
+            # Challenge/verification indicators
+            challenge_indicators = [
                 "checking your browser",
                 "just a moment",
                 "verify you are human",
                 "challenge-running",
+                "verifying your connection",  # Compass-specific
+                "please wait",
             ]
 
-            is_cf_page = any(ind in page_content for ind in cf_indicators)
+            is_challenge_page = any(ind in page_content for ind in challenge_indicators)
 
-            # Check for login form as a sign we're past CF
-            has_login_form = "username" in page_content or "password" in page_content
+            # Check for login form as a sign we're past the challenge
+            has_login_form = (
+                'id="username"' in page_content or
+                'name="username"' in page_content or
+                'id="password"' in page_content
+            )
 
             if has_login_form:
-                log("  Login form detected - Cloudflare cleared!")
+                log("  Login form detected - verification cleared!")
                 return
 
-            if not is_cf_page:
-                log("  No Cloudflare indicators found")
-                return
+            if is_challenge_page:
+                log(f"  Waiting for verification... ({int(time.time() - start_time)}s)")
+                time.sleep(2)
+                continue
 
-            log(f"  Waiting for Cloudflare... ({int(time.time() - start_time)}s)")
+            # No challenge and no login form - might be loading
+            log(f"  Page loading... ({int(time.time() - start_time)}s)")
             time.sleep(2)
 
-        log("  Warning: Cloudflare wait timeout - proceeding anyway")
+        log("  Warning: Verification wait timeout - proceeding anyway")
 
     def login(self) -> bool:
         """
@@ -172,8 +187,8 @@ class BrowserFetcher:
             username_locator = self._page.locator("#username")
 
             try:
-                # Wait for username field to be visible
-                username_locator.wait_for(state="visible", timeout=15000)
+                # Wait for username field to be visible (longer timeout for slow connections)
+                username_locator.wait_for(state="visible", timeout=30000)
                 log("  Username field is visible")
             except PlaywrightTimeout:
                 # Save debug info
@@ -205,7 +220,13 @@ class BrowserFetcher:
             # Wait for navigation after login
             log("  Waiting for login to complete...")
             self._page.wait_for_load_state("load", timeout=30000)
-            time.sleep(2)  # Extra wait for any redirects
+
+            # Wait for any post-login verification (Cloudflare Turnstile)
+            log("  Checking for post-login verification...")
+            self._wait_for_cloudflare(max_wait=90)
+
+            # Additional wait for redirects
+            time.sleep(2)
 
         except PlaywrightTimeout:
             log("  Login form interaction timeout")
@@ -215,8 +236,38 @@ class BrowserFetcher:
         log(f"  Post-login URL: {current_url}")
 
         if "login" in current_url.lower():
-            # Check for error message
-            error_selectors = [".login-error", ".error-message", "#error", ".alert-danger"]
+            # Save debug screenshot
+            debug_path = Path.home() / ".compass-client" / "debug_post_login.png"
+            self._page.screenshot(path=str(debug_path))
+            log(f"  Debug screenshot saved to {debug_path}")
+
+            # Check for error message - look for common error patterns
+            page_content = self._page.content()
+
+            # Look for specific error text patterns
+            error_patterns = [
+                "invalid username",
+                "invalid password",
+                "incorrect",
+                "authentication failed",
+                "login failed",
+                "account locked",
+                "too many attempts",
+            ]
+
+            for pattern in error_patterns:
+                if pattern in page_content.lower():
+                    raise Exception(f"Login failed: {pattern}")
+
+            # Check for error elements
+            error_selectors = [
+                ".login-error",
+                ".error-message",
+                "#error",
+                ".alert-danger",
+                ".validation-summary-errors",
+                "[class*='error']",
+            ]
             for selector in error_selectors:
                 error_elem = self._page.query_selector(selector)
                 if error_elem:
@@ -224,12 +275,31 @@ class BrowserFetcher:
                     if error_text and error_text.strip():
                         raise Exception(f"Login failed: {error_text.strip()}")
 
-            # Check page content for error messages
-            page_content = self._page.content()
-            if "invalid" in page_content.lower() or "incorrect" in page_content.lower():
-                raise Exception("Login failed: Invalid credentials")
+            # Check if still on verification page
+            page_content = self._page.content().lower()
+            if "verifying" in page_content or "cloudflare" in page_content:
+                raise Exception(
+                    "Login failed: Cloudflare verification did not complete. "
+                    "Run with --no-headless first to complete verification manually, "
+                    "then subsequent runs may work in headless mode."
+                )
 
-            raise Exception("Login failed: Still on login page")
+            # If no specific error found, check if the form still has values
+            try:
+                username_value = self._page.locator("#username").input_value(timeout=5000)
+                if username_value:
+                    log(f"  Username field still has value: {username_value}")
+                    raise Exception(
+                        "Login failed: Form still has values (submit may have failed). "
+                        "Check credentials or try --no-headless to debug."
+                    )
+            except PlaywrightTimeout:
+                pass  # Element not found, which is fine
+
+            raise Exception(
+                "Login failed: Still on login page. "
+                "Try running with --no-headless to debug."
+            )
 
         log("  Login successful!")
 
@@ -286,20 +356,39 @@ class BrowserFetcher:
         # Make API request using page's fetch
         response = self._page.evaluate(
             """async (params) => {
-                const response = await fetch(params.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ targetUserId: params.userId }),
-                });
-                return await response.json();
+                try {
+                    const response = await fetch(params.url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ targetUserId: params.userId }),
+                    });
+
+                    // Check if response is OK
+                    if (!response.ok) {
+                        return { error: `HTTP ${response.status}: ${response.statusText}` };
+                    }
+
+                    // Try to parse as JSON
+                    const text = await response.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        return { error: `Not JSON: ${text.substring(0, 200)}` };
+                    }
+                } catch (e) {
+                    return { error: e.message };
+                }
             }""",
             {"url": url, "userId": user_id},
         )
 
         if not response:
             raise Exception("Failed to fetch user details: empty response")
+
+        if isinstance(response, dict) and "error" in response:
+            raise Exception(f"Failed to fetch user details: {response['error']}")
 
         # Extract the data from response
         if isinstance(response, dict) and "d" in response:
@@ -342,21 +431,37 @@ class BrowserFetcher:
         # Make API request using page's fetch
         response = self._page.evaluate(
             """async (params) => {
-                const response = await fetch(params.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: params.userId,
-                        startDate: params.startDate,
-                        endDate: params.endDate,
-                        limit: params.limit,
-                        start: 0,
-                        page: 1,
-                    }),
-                });
-                return await response.json();
+                try {
+                    const response = await fetch(params.url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: params.userId,
+                            startDate: params.startDate,
+                            endDate: params.endDate,
+                            limit: params.limit,
+                            start: 0,
+                            page: 1,
+                        }),
+                    });
+
+                    // Check if response is OK
+                    if (!response.ok) {
+                        return { error: `HTTP ${response.status}: ${response.statusText}` };
+                    }
+
+                    // Try to parse as JSON
+                    const text = await response.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        return { error: `Not JSON: ${text.substring(0, 200)}` };
+                    }
+                } catch (e) {
+                    return { error: e.message };
+                }
             }""",
             {
                 "url": url,
@@ -369,6 +474,9 @@ class BrowserFetcher:
 
         if not response:
             raise Exception("Failed to fetch calendar events: empty response")
+
+        if isinstance(response, dict) and "error" in response:
+            raise Exception(f"Failed to fetch calendar events: {response['error']}")
 
         # Extract events from response
         if isinstance(response, dict):

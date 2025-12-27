@@ -35,9 +35,14 @@ tasks:
       - poetry run black compass_client tests
 
   refresh-mock:
-    desc: Refresh mock data from real Compass API
+    desc: Refresh mock data from real Compass API (run with --no-headless first time)
     cmds:
       - poetry run python -m compass_client.cli
+
+  refresh-mock:visible:
+    desc: Refresh mock data with visible browser (required first time for Cloudflare)
+    cmds:
+      - poetry run python -m compass_client.cli --no-headless
 
   validate-mock:
     desc: Validate mock data structure
